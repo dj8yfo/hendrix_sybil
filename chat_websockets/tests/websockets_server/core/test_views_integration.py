@@ -1,5 +1,7 @@
 import pytest
-from websockets_server.core.server import app as App
+from websockets_server.core.app import app as App
+from utils.log_helper import setup_logger
+logger = setup_logger(__name__)
 
 
 @pytest.fixture
@@ -10,6 +12,8 @@ def cli(loop, aiohttp_client):
 
 
 test_mes = 'travel to Mecca'
+
+
 async def test_get_ws_route(cli):
     ws_resp = await cli.ws_connect("/ws")
     await ws_resp.send_str(test_mes)

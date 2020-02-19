@@ -1,2 +1,8 @@
 .venv
 __pycache__
+tags
+*.log
+dump.rdb
+tmux_hendrix.conf
+.coverage
+coverage_html_report
