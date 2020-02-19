@@ -1,4 +1,8 @@
-from aiohttp import web, WSMsgType
+from aiohttp import web, WSMsgType, WSCloseCode
+from utils.log_helper import setup_logger
+import traceback
+
+logger = setup_logger(__name__)
 
 
 class WebSocketView(web.View):
@@ -11,14 +15,25 @@ class WebSocketView(web.View):
 
         ws = web.WebSocketResponse()
         await ws.prepare(self.request)
+        ws_id = self.app.extract_websockets_id(self.request)
+        logger.info("received connection from : %s", ws_id)
+        await self.app.handle_ws_connect(ws_id, ws)
 
-        async for msg in ws:
-            if msg.type == WSMsgType.TEXT:
-                if msg.data == 'close':
-                    await ws.close()
-                else:
-                    await ws.send_str(msg.data + '/answer')
-            elif msg.type == WSMsgType.ERROR:
-                print('ws connection closed with exception %s' % ws.exception())
-        print('websocket connection closed')
+        async for msg_raw in ws:
+            if msg_raw.type == WSMsgType.TEXT:
+                try:
+                    await self.app.process_msg_outbound(msg_raw.data, ws_id)
+                except ValueError as val_e:
+                    logger.error('[%s] proto violation via msg format: %s',
+                                 ws_id, val_e)
+                except Exception as e:
+                    logger.error('[%s] generic error. Exception: %s', ws_id, e)
+                    logger.error('\n%s', traceback.format_exc())
+                    await ws.close(code=WSCloseCode.UNSUPPORTED_DATA, message=str(e))
+                    break
+
+            elif msg_raw.type == WSMsgType.ERROR:
+                logger.warn('[%s] ws connection: closed with exception %s', ws_id, ws.exception())
+        logger.info('[%s] websocket connection closed', ws_id)
+        self.app.handle_ws_disconnect(ws_id)
         return ws
