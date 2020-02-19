@@ -1,6 +1,6 @@
 from unittest.mock import patch, Mock, AsyncMock, call
 from websockets_server.core.server import HXApplication
-from websockets_server.core.settings import WORKER_TOPIC
+from websockets_server.core.settings import WORKER_TOPIC, ROUNDTRIP_CHANNEL
 from utils.log_helper import setup_logger
 from aioredis.commands import Redis
 from aiohttp import WSCloseCode
@@ -39,25 +39,32 @@ class TestHXApplicationS():
                     as chan_coro:
                 exp_red_sub = Mock(name='redis_sub')
                 exp_red_pub = Mock(name='redis_pub')
-                aiored.side_effect = [exp_red_sub, exp_red_pub]
+                aiored.side_effect = [exp_red_pub, exp_red_sub]
                 coro = chan_coro.return_value
                 chanel_exp = ploop.create_task.return_value
 
                 await app._setup(Mock())
 
                 assert app.tasks[0] == chanel_exp
-                assert app.redis_sub == exp_red_sub
+                assert app.redis_sub == {
+                    ROUNDTRIP_CHANNEL: exp_red_sub
+                }
                 assert app.redis_pub == exp_red_pub
-                ploop.create_task.assert_called_with(coro, name='redis_roundrip_chan')
+                app.channel_subscribe.assert_called_with(ROUNDTRIP_CHANNEL,
+                                                         app.process_msg_inbound)
+                ploop.create_task.assert_called_with(coro, name=f'redis_{ROUNDTRIP_CHANNEL}_chan')
 
     async def test__on_shutdown_handler(self, app):
-        app.redis_sub = Mock(name='redis_sub', spec=redis_spec)
-        app.redis_sub.closed = False
-        app.redis_sub.wait_closed = AsyncMock(name='redis_sub_close_wait')
+        real_redis_sub = Mock(name='redis_sub_connection')
+        real_redis_sub.closed = False
+        real_redis_sub.wait_closed = AsyncMock(name='redis_sub_close_wait')
+        app.redis_sub = {
+            'test_chan': real_redis_sub
+        }
 
         app.redis_pub = Mock(name='redis_pub', spec=redis_spec)
         app.redis_pub.closed = False
-        app.redis_pub.wait_closed = AsyncMock(name='redis_sub_close_wait')
+        app.redis_pub.wait_closed = AsyncMock(name='redis_pub_close_wait')
 
         async def trivial(param):
             await asyncio.sleep(1)
@@ -82,29 +89,34 @@ class TestHXApplicationS():
 
         for t in app.tasks:
             assert t.cancelled()
-        app.redis_sub.wait_closed.assert_awaited()
+        real_redis_sub.wait_closed.assert_awaited()
         app.redis_pub.wait_closed.assert_awaited()
 
     async def test_channel_subscribe(self, app):
-        app.process_msg_inbound = Mock(name='app_process_msg_inbound_mock')
+        app.process_msg_inbound = AsyncMock(name='app_process_msg_inbound_mock')
 
         redis_chan = AsyncMock(name='redis_chan_conn')
-        app.redis_sub = Mock(name='redis_sub')
-        app.redis_sub.subscribe = AsyncMock(name='redis_sub_command')
-        app.redis_sub.subscribe.return_value = [redis_chan]
-
+        real_redis_sub = Mock(name='redis_sub_connection')
         test_chan = 'test_channel'
+        app.redis_sub = {
+            test_chan: real_redis_sub
+        }
+        real_redis_sub.subscribe = AsyncMock(name='redis_sub_command')
+        real_redis_sub.subscribe.return_value = [redis_chan]
+
         sidef = [f'test_mes {el}'.encode() for el in range(6)]
 
         redis_chan.wait_message = AsyncMock(name='redis_chan_conn_wait',
-                                                 side_effect=sidef)
+                                            side_effect=sidef)
         redis_chan.get = AsyncMock(name='redis_chan_conn_get', side_effect=sidef)
         try:
-            await app.channel_subscribe(test_chan)
+            await app.channel_subscribe(test_chan, app.process_msg_inbound)
+
         except RuntimeError as e:
             assert str(e) == 'coroutine raised StopIteration'
-        app.redis_sub.subscribe.assert_called_with(test_chan)
-        assert app.process_msg_inbound.call_args_list == [call(test_chan, el) for el in sidef]
+        real_redis_sub.subscribe.assert_called_with(test_chan)
+        exp_calls = [call(test_chan, el) for el in sidef]
+        app.process_msg_inbound.assert_has_awaits(exp_calls)
 
     async def test_handle_ws_connect(self, app):
         ws_id_mock = Mock(name=f'ws_id mock')

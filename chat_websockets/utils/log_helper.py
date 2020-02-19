@@ -1,3 +1,4 @@
+import pytz
 import logging
 import sys
 import os
@@ -25,8 +26,8 @@ def setup_logger(name, logdir=None):
         return loggers.get(name)
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
-
-    time = datetime.datetime.now().strftime("%b_%d_%Y_%H_%M_%S")
+    time = datetime.datetime.now(pytz.timezone('Asia/Tel_Aviv')).\
+        strftime("%b_%d_%Y_%H_%M_%S")
     logdir = os.path.join(logdir, time)
     try:
         os.mkdir(logdir)

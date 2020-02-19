@@ -1,23 +1,28 @@
-import asyncio
 import json
-import aioredis
 from aiohttp import web, WSCloseCode
+from typing import Dict
 from websockets_server.core import views, settings
-from websockets_server.core import shutdown, subscribe
+from websockets_server.core.template_routine import TmpltRedisRoutines
 from utils.log_helper import setup_logger
 from aioredis import Redis
 
 
-class HXApplication(web.Application):
+class HXApplication(web.Application, TmpltRedisRoutines):
 
     REQ_MSG_KEYS = ['action']
     redis_pub: Redis
-    redis_sub: Redis
+    redis_sub: Dict[str, Redis]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.tasks = []
+
+        # the fact, that the connection state in the process memory implies usage
+        # of [--workers 1] parameter of gunicorn; if one intends to use many workers,
+        # the global game (room, connection, id) state has to  be shared between workers
+        # via redis e.g., that's a more complex structure
         self.websockets = {}
+        self.rooms = {}
         self.logger = setup_logger(__name__)
 
         self.on_startup.append(self._setup)
@@ -31,25 +36,18 @@ class HXApplication(web.Application):
     async def _setup(self, app):
         self.logger.info('HXApplication: attaching websocket view')
         self.router.add_get('/ws', views.WebSocketView)
-
         redis_addr = (settings.REDIS_HOST, settings.REDIS_PORT)
-        for attr in ('redis_sub', 'redis_pub'):
-            setattr(self, attr, await aioredis.create_redis(redis_addr,
-                                                            loop=self.loop))
-
-        listen_channel = self.channel_subscribe(settings.ROUNDTRIP_CHANNEL)
-        self.tasks.append(self.loop.create_task(listen_channel,
-                                                name='redis_roundrip_chan'))
+        channels_handlers = [(settings.ROUNDTRIP_CHANNEL, self.process_msg_inbound)]
+        await self.init_redis_tasks(redis_addr, channels_handlers)
 
     async def _on_shutdown_handler(self, app):
-        await shutdown.shutdown(self)
+        await self.shutdown_templ()
 
         for ws_id in self.websockets.keys():
             ws = self.websockets[ws_id]['ws']
             await ws.close(code=WSCloseCode.GOING_AWAY, message='servo_shutdown')
 
-    async def channel_subscribe(self, chann_name):
-        await subscribe.subscribe(self, chann_name, self.process_msg_inbound)
+    # async def channel_subscribe(self, chann_name, msg_handler) - inherited
 
     async def handle_ws_connect(self, ws_id, ws):
         if ws_id in self.websockets:
@@ -71,8 +69,12 @@ class HXApplication(web.Application):
         self.websockets.pop(ws_id, None)
         self.logger.debug('[%s] websocket was removed from websocket list', ws_id)
 
-    def process_msg_inbound(self, chann_name, raw_msg):
-        self.logger.debug('receieved message on %s: %s', chann_name, raw_msg)
+    async def process_msg_inbound(self, chann_name, raw_msg):
+        self.logger.debug('receieved message on [%s]: [%s]', chann_name, raw_msg)
+        msg = json.loads(raw_msg)
+        ws_id = msg['ws_id']
+        ws = self.websockets[ws_id]['ws']
+        await ws.send_str(json.dumps(msg['msg']))
 
     async def process_msg_outbound(self, msg_raw, ws_id):
         # preliminary validation
