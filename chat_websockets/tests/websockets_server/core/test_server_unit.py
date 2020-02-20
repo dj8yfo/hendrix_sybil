@@ -1,6 +1,7 @@
-from unittest.mock import patch, Mock, AsyncMock, call
+from unittest.mock import patch, Mock, AsyncMock, call, ANY
 from websockets_server.core.server import HXApplication
-from websockets_server.core.settings import WORKER_TOPIC, ROUNDTRIP_CHANNEL
+import websockets_server
+from websockets_server.core.settings import WORKER_TOPIC, ROUNDTRIP_CHANNEL, HENDRIX_CHANNEL
 from utils.log_helper import setup_logger
 from aioredis.commands import Redis
 from aiohttp import WSCloseCode
@@ -38,21 +39,31 @@ class TestHXApplicationS():
             with patch.object(app, 'channel_subscribe', Mock(name='chan_coro'))\
                     as chan_coro:
                 exp_red_sub = Mock(name='redis_sub')
+                exp_red_sub1 = Mock(name='redis_sub1')
                 exp_red_pub = Mock(name='redis_pub')
-                aiored.side_effect = [exp_red_pub, exp_red_sub]
-                coro = chan_coro.return_value
-                chanel_exp = ploop.create_task.return_value
+                aiored.side_effect = [exp_red_pub, exp_red_sub, exp_red_sub1]
+                coro = Mock(name='redis_sub_coro')
+                coro1 = Mock(name='redis_sub_coro')
+                chan_coro.side_effect = [coro, coro1]
+                chanel_exp = Mock(name='redis_sub_task')
+                chanel_exp1 = Mock(name='redis_sub_task1')
+                ploop.create_task.side_effect = [chanel_exp, chanel_exp1]
 
                 await app._setup(Mock())
 
                 assert app.tasks[0] == chanel_exp
+                assert app.tasks[1] == chanel_exp1
                 assert app.redis_sub == {
-                    ROUNDTRIP_CHANNEL: exp_red_sub
+                    ROUNDTRIP_CHANNEL: exp_red_sub,
+                    HENDRIX_CHANNEL: exp_red_sub1
                 }
                 assert app.redis_pub == exp_red_pub
-                app.channel_subscribe.assert_called_with(ROUNDTRIP_CHANNEL,
-                                                         app.process_msg_inbound)
-                ploop.create_task.assert_called_with(coro, name=f'redis_{ROUNDTRIP_CHANNEL}_chan')
+                sub_exp_calls = [call(ROUNDTRIP_CHANNEL, app.process_msg_inbound),
+                                 call(HENDRIX_CHANNEL, app.process_msg_admin)]
+                app.channel_subscribe.assert_has_calls(sub_exp_calls)
+                exp_calls = [call(coro, name=f'redis_{ROUNDTRIP_CHANNEL}_chan'),
+                             call(coro1, name=f'redis_{HENDRIX_CHANNEL}_chan')]
+                ploop.create_task.assert_has_calls(exp_calls)
 
     async def test__on_shutdown_handler(self, app):
         real_redis_sub = Mock(name='redis_sub_connection')
@@ -127,7 +138,7 @@ class TestHXApplicationS():
         assert app.websockets[ws_id_mock]['ws'] == ws_mock
         assert app.websockets[ws_id_mock]['message_tuples'] == []
         assert app.websockets[ws_id_mock]['room'] is None
-        assert app.websockets[ws_id_mock]['identity_name'] == 'unauthenticated'
+        assert app.websockets[ws_id_mock]['identity_nym'] == 'unauthenticated'
 
     async def test_handle_ws_connect_replace(self, app):
         ws_id_mock = Mock(name=f'ws_id mock')
@@ -156,19 +167,26 @@ class TestHXApplicationS():
         ws_id = 'host_far_away'
         app.websockets[ws_id] = {}
         app.websockets[ws_id]['message_tuples'] = [('A', 30), ('S', 34), ('H', 100), ('M', 300)]
+        app.websockets[ws_id]['room'] = None
+        app.websockets[ws_id]['identity_nym'] = 'unauthenticated'
         msg = '{"action": 45454}'
 
         exp_data = {
             'message_types': ['A', 'S', 'H', 'M'],
             'ws_id': ws_id,
+            'room': None,
+            'from_nym': 'unauthenticated',
             'msg': {
                 'action': 45454
             }
         }
-        await app.process_msg_outbound(msg, ws_id)
+
+        with patch.object(websockets_server.core.server.random, 'choice',
+                          return_value='some_random_pub'):
+            await app.process_msg_outbound(msg, ws_id)
 
         app.redis_pub.publish_json.assert_awaited()
-        app.redis_pub.publish_json.assert_called_with(WORKER_TOPIC, exp_data)
+        app.redis_pub.publish_json.assert_called_with('some_random_pub', exp_data)
 
     async def test_process_msg_outbound_error(self, app):
         arg = 'invalid_input: failure'

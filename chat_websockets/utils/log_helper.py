@@ -7,7 +7,7 @@ import datetime
 loggers = {}
 
 
-def setup_logger(name, logdir=None):
+def setup_logger(name, logdir=None, filename_arg=None):
     if not logdir:
         logdir = os.getenv('LOG_DIR', './')
 
@@ -33,7 +33,10 @@ def setup_logger(name, logdir=None):
         os.mkdir(logdir)
     except FileExistsError:
         pass
-    filename = f'{filename}.log'
+    if filename_arg:
+        filename = f'{filename_arg}.log'
+    else:
+        filename = f'{filename}.log'
     path = os.path.join(logdir, filename)
     console = logging.FileHandler(path)
     console.setLevel(logging.DEBUG)

@@ -15,10 +15,10 @@ def cli(loop, aiohttp_client):
 
 async def test_get_ws_route(cli):
     ws_resp = await cli.ws_connect("/ws")
-    test_mes = {'action': 'action: привет привет 23'}
-    await ws_resp.send_str(json.dumps(test_mes))
-    ws_mes = await ws_resp.receive_str()
-    logger.info(ws_mes)
-    test_mes['action'] = ANY
-    assert json.loads(ws_mes) == test_mes
+    for i in range(10):
+        test_mes = {'action': f'{i} привет привет 23'}
+        await ws_resp.send_str(json.dumps(test_mes))
+        ws_mes = await ws_resp.receive_str()
+        logger.info(ws_mes)
+        assert json.loads(ws_mes) == test_mes
     await ws_resp.close()
