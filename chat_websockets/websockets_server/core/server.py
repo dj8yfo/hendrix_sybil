@@ -1,10 +1,17 @@
 import json
+import random
 from aiohttp import web, WSCloseCode
 from typing import Dict
 from websockets_server.core import views, settings
 from websockets_server.core.template_routine import TmpltRedisRoutines
 from utils.log_helper import setup_logger
 from aioredis import Redis
+
+
+nyms = []
+with open('nyms', 'r') as nyms_file:
+    for line in nyms_file:
+        nyms.append(line.rstrip())
 
 
 class HXApplication(web.Application, TmpltRedisRoutines):
@@ -22,7 +29,7 @@ class HXApplication(web.Application, TmpltRedisRoutines):
         # the global game (room, connection, id) state has to  be shared between workers
         # via redis e.g., that's a more complex structure
         self.websockets = {}
-        self.rooms = {}
+        self.rooms = {}  # dict: room -> set(nyms)
         self.logger = setup_logger(__name__)
 
         self.on_startup.append(self._setup)
@@ -35,9 +42,11 @@ class HXApplication(web.Application, TmpltRedisRoutines):
 
     async def _setup(self, app):
         self.logger.info('HXApplication: attaching websocket view')
+        self.logger.info('available nyms: %s', nyms)
         self.router.add_get('/ws', views.WebSocketView)
         redis_addr = (settings.REDIS_HOST, settings.REDIS_PORT)
         channels_handlers = [(settings.ROUNDTRIP_CHANNEL, self.process_msg_inbound)]
+        channels_handlers += [(settings.HENDRIX_CHANNEL, self.process_msg_admin)]
         await self.init_redis_tasks(redis_addr, channels_handlers)
 
     async def _on_shutdown_handler(self, app):
@@ -60,7 +69,7 @@ class HXApplication(web.Application, TmpltRedisRoutines):
         self.websockets[ws_id] = {
             'ws': ws,
             'message_tuples': [],   # list of tuples of format (type_char, msg_id)
-            'identity_name': 'unauthenticated',
+            'identity_nym': 'unauthenticated',
             'room': None
         }
         self.logger.info('[%s] websocket was added to websocket list', ws_id)
@@ -76,6 +85,21 @@ class HXApplication(web.Application, TmpltRedisRoutines):
         ws = self.websockets[ws_id]['ws']
         await ws.send_str(json.dumps(msg['msg']))
 
+    async def process_msg_admin(self, chann_name, raw_msg):
+        self.logger.debug('receieved message on [%s]: [%s]', chann_name, raw_msg)
+        msg = json.loads(raw_msg)
+
+        ws_id = msg['ws_id']
+        message_content = msg['message']
+
+        ws = self.websockets[ws_id]['ws']
+        payload = {
+            'action': 'message',
+            'room': 'get_the_room_of_ws_id',
+            'text': message_content
+        }
+        await ws.send_str(json.dumps(payload))
+
     async def process_msg_outbound(self, msg_raw, ws_id):
         # preliminary validation
         try:
@@ -85,12 +109,15 @@ class HXApplication(web.Application, TmpltRedisRoutines):
         if not all(msg.get(key) for key in self.REQ_MSG_KEYS):
             raise ValueError(f'not all keys present in incoming message: {msg} |' +
                              f'{self.REQ_MSG_KEYS}')
-        pub_topic = settings.WORKER_TOPIC
+        pub_topic = random.choice(settings.WORKER_TOPIC)
         types = list(map(lambda x: x[0], self.websockets[ws_id]['message_tuples']))
         data_out = {}
         data_out['message_types'] = types
         data_out['ws_id'] = ws_id
+        data_out['from_nym'] = self.websockets[ws_id]['identity_nym']
+        data_out['room'] = self.websockets[ws_id]['room']
         data_out['msg'] = msg
+
         self.logger.debug('[%s] publish message [%s] to topic [%s]', ws_id,
                           data_out, pub_topic)
         await self.redis_pub.publish_json(pub_topic, data_out)

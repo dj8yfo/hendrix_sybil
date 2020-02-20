@@ -10,7 +10,7 @@ class HendrixTelegramNotify(AioredisWorker):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.logger = setup_logger(__name__)
-        self.bot = telebot.TeleBot(tlgrm_secrets.token)
+        self.bot = telebot.TeleBot(tlgrm_secrets.token1)
         self.chat_id = tlgrm_secrets.chat_id
 
     async def process_msg_inbound(self, chann_name, msg_raw):
