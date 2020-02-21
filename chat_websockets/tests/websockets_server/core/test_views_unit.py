@@ -1,7 +1,7 @@
 from websockets_server.core import views
 import pytest
-from utils.log_helper import setup_logger
 from unittest.mock import patch, AsyncMock, MagicMock, NonCallableMock, call
+from utils.log_helper import setup_logger
 
 logger = setup_logger(__name__)
 
@@ -24,6 +24,7 @@ async def test_get(aio_req):
         view.app.extract_websockets_id.return_value = ws_id_unique
         view.app.process_msg_outbound = AsyncMock(name='process_out_mock')
         view.app.handle_ws_connect = AsyncMock(name='handle_ws_connect_mock')
+        view.app.handle_ws_disconnect = AsyncMock(name='handle_ws_disconnect_mock')
 
         ws.prepare = AsyncMock(name='ws_prepare')
         test_msgs = [NonCallableMock(type=views.WSMsgType.TEXT,
@@ -38,7 +39,7 @@ async def test_get(aio_req):
         ws.prepare.assert_awaited()
         exp_calls = [call(el.data, ws_id_unique) for el in test_msgs]
         assert view.app.process_msg_outbound.mock_calls == exp_calls
-        view.app.handle_ws_disconnect.assert_called()
+        view.app.handle_ws_disconnect.assert_awaited_with(ws_id_unique)
 
 
 async def test_get_errors(aio_req):
@@ -49,14 +50,16 @@ async def test_get_errors(aio_req):
 
     with patch.object(views.web, 'WebSocketResponse', return_value=ws):
         view.app.extract_websockets_id.return_value = ws_id_unique
-        unused_data = [NonCallableMock(type=views.WSMsgType.TEXT, data='unused')]
+        unused_data = [NonCallableMock(
+            type=views.WSMsgType.TEXT, data='unused')]
         test_msgs = [NonCallableMock(type=views.WSMsgType.TEXT,
                                      data=f'test_msg')]
-        sidef =  [Exception('error_out')] + test_msgs
+        sidef = [Exception('error_out')] + test_msgs
 
         ws.prepare = AsyncMock(name='ws_prepare')
         ws.__aiter__.return_value = unused_data + test_msgs
         view.app.handle_ws_connect = AsyncMock(name='handle_ws_connect_mock')
+        view.app.handle_ws_disconnect = AsyncMock(name='handle_ws_disconnect_mock')
         view.app.process_msg_outbound = AsyncMock(name='process_out_mock',
                                                   side_effect=sidef)
 
@@ -65,4 +68,4 @@ async def test_get_errors(aio_req):
         exp_calls = [call(el.data, ws_id_unique) for el in unused_data]
         assert view.app.process_msg_outbound.mock_calls == exp_calls
         ws.close.assert_awaited()
-        view.app.handle_ws_disconnect.assert_called()
+        view.app.handle_ws_disconnect.assert_awaited_with(ws_id_unique)

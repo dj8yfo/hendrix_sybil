@@ -1,13 +1,13 @@
 from utils.log_helper import setup_logger
 from .template_routine import TmpltRedisRoutines
-from . import template_routine
 import asyncio
 import signal
 # import os
 
+
 class AioredisWorker(TmpltRedisRoutines):
 
-    def __init__(self, host, port, sub_topic, loop=None, **kwargs):
+    def __init__(self, host=None, port=None, sub_topic=None, loop=None, **kwargs):
         self.logger = setup_logger(__name__)
         self.loop = loop or asyncio.get_event_loop()
         self.host = host

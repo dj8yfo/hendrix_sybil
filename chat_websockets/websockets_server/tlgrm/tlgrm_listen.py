@@ -16,12 +16,14 @@ r = redis.Redis(host='localhost', port=6379, db=0)
 logger = setup_logger(__name__, filename_arg='tlgrm_listen_hendrix')
 
 command = 'send'
+
+
 @bot.message_handler(content_types=["text"], commands=['send'])
 def forward_messages(message):
     if message.from_user.id == tlgrm_secrets.chat_id:
         logger.info('[%s]: [%s]', HENDRIX_CHANNEL, message.text)
         try:
-            suffix = message.text[len(command)+1:]
+            suffix = message.text[len(command) + 1:]
             ws_id, text = suffix.split('|')[:2]
         except Exception as e:
             print(f'excpetion {e} happened')
