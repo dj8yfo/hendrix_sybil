@@ -2,5 +2,7 @@
 directory = coverage_html_report
 
 [run]
+source =
+	websockets_server/
 omit =
 	*/.venv/*

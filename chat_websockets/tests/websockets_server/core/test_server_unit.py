@@ -1,7 +1,7 @@
-from unittest.mock import patch, Mock, AsyncMock, call, ANY
-from websockets_server.core.server import HXApplication
+from unittest.mock import patch, Mock, AsyncMock, call
+from websockets_server.core.server import HXApplication, nyms
 import websockets_server
-from websockets_server.core.settings import WORKER_TOPIC, ROUNDTRIP_CHANNEL, HENDRIX_CHANNEL
+from websockets_server.core.settings import ROUNDTRIP_CHANNEL, HENDRIX_CHANNEL, NYMS_KEY
 from utils.log_helper import setup_logger
 from aioredis.commands import Redis
 from aiohttp import WSCloseCode
@@ -41,6 +41,7 @@ class TestHXApplicationS():
                 exp_red_sub = Mock(name='redis_sub')
                 exp_red_sub1 = Mock(name='redis_sub1')
                 exp_red_pub = Mock(name='redis_pub')
+                exp_red_pub.sadd = AsyncMock(name='redis_sadd_mock')
                 aiored.side_effect = [exp_red_pub, exp_red_sub, exp_red_sub1]
                 coro = Mock(name='redis_sub_coro')
                 coro1 = Mock(name='redis_sub_coro')
@@ -64,6 +65,8 @@ class TestHXApplicationS():
                 exp_calls = [call(coro, name=f'redis_{ROUNDTRIP_CHANNEL}_chan'),
                              call(coro1, name=f'redis_{HENDRIX_CHANNEL}_chan')]
                 ploop.create_task.assert_has_calls(exp_calls)
+                exp_calls = [call(NYMS_KEY, nym.encode(encoding='utf-8')) for nym in nyms]
+                exp_red_pub.sadd.assert_has_awaits(exp_calls)
 
     async def test__on_shutdown_handler(self, app):
         real_redis_sub = Mock(name='redis_sub_connection')
@@ -76,6 +79,7 @@ class TestHXApplicationS():
         app.redis_pub = Mock(name='redis_pub', spec=redis_spec)
         app.redis_pub.closed = False
         app.redis_pub.wait_closed = AsyncMock(name='redis_pub_close_wait')
+        app.redis_pub.spop = AsyncMock(name='redis_pub_spop')
 
         async def trivial(param):
             await asyncio.sleep(1)
@@ -90,8 +94,11 @@ class TestHXApplicationS():
                 'ws': ws_mock
             }
 
+        num_nyms = len(nyms)
+
         await app._on_shutdown_handler(Mock())
 
+        app.redis_pub.spop.assert_has_awaits([call(NYMS_KEY, num_nyms)])
         for ws_id_mock in app.websockets.keys():
             ws_mock = app.websockets[ws_id_mock]['ws']
             ws_mock.close.assert_called_with(code=WSCloseCode.GOING_AWAY,
@@ -136,9 +143,10 @@ class TestHXApplicationS():
         await app.handle_ws_connect(ws_id_mock, ws_mock)
 
         assert app.websockets[ws_id_mock]['ws'] == ws_mock
-        assert app.websockets[ws_id_mock]['message_tuples'] == []
+        assert app.websockets[ws_id_mock]['message_types'] == []
         assert app.websockets[ws_id_mock]['room'] is None
-        assert app.websockets[ws_id_mock]['identity_nym'] == 'unauthenticated'
+        assert app.websockets[ws_id_mock]['identity_nym'] == None
+        assert app.websockets[ws_id_mock]['processing_blocked'] is False
 
     async def test_handle_ws_connect_replace(self, app):
         ws_id_mock = Mock(name=f'ws_id mock')
@@ -152,12 +160,13 @@ class TestHXApplicationS():
         stored_ws_mock.close.assert_awaited()
         assert app.websockets[ws_id_mock]['ws'] == ws_mock
 
-    def test_handle_ws_disconnect(self, app):
+    async def test_handle_ws_disconnect(self, app):
         ws_id_mock = Mock(name=f'ws_id mock')
         ws_struct_mock = Mock(name=f'ws_struct_mock')
 
         app.websockets[ws_id_mock] = ws_struct_mock
-        app.handle_ws_disconnect(ws_id_mock)
+
+        await app.handle_ws_disconnect(ws_id_mock)
 
         assert ws_id_mock not in app.websockets.keys()
 
@@ -166,18 +175,21 @@ class TestHXApplicationS():
         app.redis_pub.publish_json = AsyncMock(name='redis_pub.publish_json')
         ws_id = 'host_far_away'
         app.websockets[ws_id] = {}
-        app.websockets[ws_id]['message_tuples'] = [('A', 30), ('S', 34), ('H', 100), ('M', 300)]
+        app.websockets[ws_id]['message_types'] = ['authenticate', 'select_room',
+                                                  'history_retrieve', 'send_message']
         app.websockets[ws_id]['room'] = None
-        app.websockets[ws_id]['identity_nym'] = 'unauthenticated'
+        app.websockets[ws_id]['identity_nym'] = None
+        app.websockets[ws_id]['processing_blocked'] = False
         msg = '{"action": 45454}'
 
         exp_data = {
-            'message_types': ['A', 'S', 'H', 'M'],
+            'message_types': ['authenticate', 'select_room',
+                              'history_retrieve', 'send_message'],
             'ws_id': ws_id,
-            'room': None,
-            'from_nym': 'unauthenticated',
             'msg': {
-                'action': 45454
+                'action': 45454,
+                'from_nym': None,
+                'room': None,
             }
         }
 
@@ -185,15 +197,29 @@ class TestHXApplicationS():
                           return_value='some_random_pub'):
             await app.process_msg_outbound(msg, ws_id)
 
+        assert app.websockets[ws_id]['processing_blocked'] is True
         app.redis_pub.publish_json.assert_awaited()
         app.redis_pub.publish_json.assert_called_with('some_random_pub', exp_data)
 
     async def test_process_msg_outbound_error(self, app):
         arg = 'invalid_input: failure'
-        with pytest.raises(ValueError, match='json encoding'):
+        with pytest.raises(ValueError, match='invalid json encoding'):
+            await app.process_msg_outbound(arg, 0)
+
+    async def test_process_msg_outbound_error_not_mapping(self, app):
+        arg = '[5435, 345345 ,345345 ,34535 ,34535]'
+        with pytest.raises(ValueError, match='has to be a mapping'):
             await app.process_msg_outbound(arg, 0)
 
     async def test_process_msg_outbound_error_keys(self, app):
         arg = '{"toxicity": 45454}'
         with pytest.raises(ValueError, match='not all keys'):
             await app.process_msg_outbound(arg, 0)
+
+    async def test_process_msg_outbound_error_duplicate_msg(self, app):
+        arg = '{"action": 45454}'
+        ws_id = 'host_far_away'
+        app.websockets[ws_id] = {}
+        app.websockets[ws_id]['processing_blocked'] = True
+        with pytest.raises(RuntimeError, match='blocked by another message'):
+            await app.process_msg_outbound(arg, ws_id)

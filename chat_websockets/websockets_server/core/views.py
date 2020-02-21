@@ -15,7 +15,7 @@ class WebSocketView(web.View):
 
         ws = web.WebSocketResponse()
         await ws.prepare(self.request)
-        ws_id = self.app.extract_websockets_id(self.request)
+        ws_id = self.app.extract_websockets_id(self.request, ws)
         logger.info("received connection from : %s", ws_id)
         await self.app.handle_ws_connect(ws_id, ws)
 
@@ -23,10 +23,7 @@ class WebSocketView(web.View):
             if msg_raw.type == WSMsgType.TEXT:
                 try:
                     await self.app.process_msg_outbound(msg_raw.data, ws_id)
-                except ValueError as val_e:
-                    logger.error('[%s] proto violation via msg format: %s',
-                                 ws_id, val_e)
-                except Exception as e:
+                except (ValueError, Exception) as e:
                     logger.error('[%s] generic error. Exception: %s', ws_id, e)
                     logger.error('\n%s', traceback.format_exc())
                     await ws.close(code=WSCloseCode.UNSUPPORTED_DATA, message=str(e))
@@ -35,5 +32,5 @@ class WebSocketView(web.View):
             elif msg_raw.type == WSMsgType.ERROR:
                 logger.warn('[%s] ws connection: closed with exception %s', ws_id, ws.exception())
         logger.info('[%s] websocket connection closed', ws_id)
-        self.app.handle_ws_disconnect(ws_id)
+        await self.app.handle_ws_disconnect(ws_id)
         return ws
