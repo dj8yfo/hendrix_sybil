@@ -3,6 +3,8 @@ from utils.log_helper import setup_logger
 import traceback
 
 logger = setup_logger(__name__)
+good_exit_code = WSCloseCode.OK
+good_exit_message = 'graceful exit'
 
 
 class WebSocketView(web.View):
@@ -19,6 +21,8 @@ class WebSocketView(web.View):
         logger.info("received connection from : %s", ws_id)
         await self.app.handle_ws_connect(ws_id, ws)
 
+        exit_message = good_exit_message
+        exit_code = good_exit_code
         async for msg_raw in ws:
             if msg_raw.type == WSMsgType.TEXT:
                 try:
@@ -26,11 +30,15 @@ class WebSocketView(web.View):
                 except (ValueError, Exception) as e:
                     logger.error('[%s] generic error. Exception: %s', ws_id, e)
                     logger.error('\n%s', traceback.format_exc())
-                    await ws.close(code=WSCloseCode.UNSUPPORTED_DATA, message=str(e))
+                    exit_code = WSCloseCode.UNSUPPORTED_DATA
+                    exit_message = str(e)
                     break
 
             elif msg_raw.type == WSMsgType.ERROR:
-                logger.warn('[%s] ws connection: closed with exception %s', ws_id, ws.exception())
-        logger.info('[%s] websocket connection closed', ws_id)
-        await self.app.handle_ws_disconnect(ws_id)
+                exit_code = WSCloseCode.PROTOCOL_ERROR
+                exit_message = str(ws.exception())
+                logger.warn('[%s] ws connection: closed with exception %s',
+                            ws_id, exit_message)
+                break
+        await self.app.handle_ws_disconnect(ws_id, exit_code, exit_message)
         return ws

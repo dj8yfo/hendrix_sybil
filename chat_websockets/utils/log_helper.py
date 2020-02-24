@@ -27,7 +27,7 @@ def setup_logger(name, logdir=None, filename_arg=None):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     time = datetime.datetime.now(pytz.timezone('Asia/Tel_Aviv')).\
-        strftime("%b_%d_%Y_%H_%M_%S")
+        strftime("%b_%d_%Y_%H_%M")
     logdir = os.path.join(logdir, time)
     try:
         os.mkdir(logdir)

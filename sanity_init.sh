@@ -6,13 +6,16 @@ cd chat_websockets/
 export LOG_DIR=$HOME/hendrix_logs
 case "$1" in
 	integration)
-		trap 'sleep 2; kill $(jobs -p)' EXIT INT TERM
+		trap 'sleep 5; kill $(jobs -p)' EXIT INT TERM
+		rm dump.rdb
 		redis-server &
 		(
 		set -e
 		trap 'kill $(jobs -p)' EXIT INT TERM
 		python manage.py msg_process_worker --sub_topic=worker-input --worker_class=websockets_server.core.chat_msg_worker:DbAccessWorker &
 		python manage.py msg_process_worker --sub_topic=worker-input-1 --worker_class=websockets_server.core.chat_msg_worker:DbAccessWorker &
+		python manage.py msg_process_worker --sub_topic=worker-input-2 --worker_class=websockets_server.core.chat_msg_worker:DbAccessWorker &
+		python manage.py msg_process_worker --sub_topic=worker-input-3 --worker_class=websockets_server.core.chat_msg_worker:DbAccessWorker &
 		python manage.py msg_process_worker --sub_topic=workers-responded --worker_class=websockets_server.tlgrm.tlgrm_notifier:HendrixTelegramNotify &
 		./bot_supervisor.sh &
 		sleep 1
@@ -36,4 +39,3 @@ case "$1" in
 		echo "not a valid action option: $1"
 		;;
 esac
-

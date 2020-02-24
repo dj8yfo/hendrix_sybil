@@ -1,0 +1,9 @@
+sudo useradd -G $homeuser chatw
+sudo -u postgres createuser -dP chatw
+sudo -u chatw createdb -E utf8 -U chatw chatw
+
+# /etc/postgresql/10/main/pg_hba.conf
+local   chatw             chatw                                md5
+
+python manage.py makemigrations websockets_server
+python manage.py migrate

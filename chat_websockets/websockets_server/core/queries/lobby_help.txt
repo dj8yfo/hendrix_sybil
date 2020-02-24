@@ -1,0 +1,18 @@
+Menu items:
+
+\rent-room <hash> <room-name>
+	prepare a transaction to 0xE96E2181F6166A37EA4C04F6E6E2bD672D72Acc1 .
+	notify hendrix premises of the transaction <hash> with the above command.
+	broadcast the transaction to the network.
+	rent fee: 0.01 eth per day
+
+\rent-room-touch-pay <number-of-days> <room-name>
+	submit the above command.
+	lick your thumb and touch the screen in front of you.
+	an amount, proportional to the desired stay duration in hendrix will be withdrawn from your dna-bound bank account.
+	if your account appears to have insufficient funds, some amount may still be withdrawn, depending on your bank accounting policy.
+	rent fee: 2 ecoin per day
+
+\rent-room <room-name>
+	if you feel desolate and ultimately poor, try this command.
+	the room is effectively public, so most likely you will meet strangers therein.
