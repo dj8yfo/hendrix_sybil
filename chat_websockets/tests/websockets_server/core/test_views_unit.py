@@ -39,7 +39,9 @@ async def test_get(aio_req):
         ws.prepare.assert_awaited()
         exp_calls = [call(el.data, ws_id_unique) for el in test_msgs]
         assert view.app.process_msg_outbound.mock_calls == exp_calls
-        view.app.handle_ws_disconnect.assert_awaited_with(ws_id_unique)
+        view.app.handle_ws_disconnect.assert_awaited_with(ws_id_unique,
+                                                          views.good_exit_code,
+                                                          views.good_exit_message)
 
 
 async def test_get_errors(aio_req):
@@ -54,7 +56,8 @@ async def test_get_errors(aio_req):
             type=views.WSMsgType.TEXT, data='unused')]
         test_msgs = [NonCallableMock(type=views.WSMsgType.TEXT,
                                      data=f'test_msg')]
-        sidef = [Exception('error_out')] + test_msgs
+        exc = Exception('error_out')
+        sidef = [exc] + test_msgs
 
         ws.prepare = AsyncMock(name='ws_prepare')
         ws.__aiter__.return_value = unused_data + test_msgs
@@ -67,5 +70,6 @@ async def test_get_errors(aio_req):
 
         exp_calls = [call(el.data, ws_id_unique) for el in unused_data]
         assert view.app.process_msg_outbound.mock_calls == exp_calls
-        ws.close.assert_awaited()
-        view.app.handle_ws_disconnect.assert_awaited_with(ws_id_unique)
+        view.app.handle_ws_disconnect.assert_awaited_with(ws_id_unique,
+                                                          views.WSCloseCode.UNSUPPORTED_DATA,
+                                                          str(exc))

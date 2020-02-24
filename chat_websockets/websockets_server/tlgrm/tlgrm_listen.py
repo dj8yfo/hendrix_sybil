@@ -6,6 +6,7 @@ import telebot
 import tlgrm_secrets
 
 from websockets_server.core.settings import HENDRIX_CHANNEL
+from websockets_server.core.message_proto_handler import MessageProtoHandler
 from utils.log_helper import setup_logger
 
 import redis
@@ -25,15 +26,16 @@ def forward_messages(message):
         try:
             suffix = message.text[len(command) + 1:]
             ws_id, text = suffix.split('|')[:2]
+            ws_id = ws_id.strip()
+            text = text.strip()
         except Exception as e:
             print(f'excpetion {e} happened')
             return
-        msg = {
-            'ws_id': ws_id.strip(),
-            'message': text.strip()
-        }
+        msg, chan = MessageProtoHandler.send_message_layout(content=text, room=None,
+                                                            from_nym=None, ws_id=ws_id,
+                                                            channel=HENDRIX_CHANNEL)
         msg_json = json.dumps(msg)
-        r.publish(HENDRIX_CHANNEL, msg_json)
+        r.publish(chan, msg_json)
 
 
 if __name__ == '__main__':
