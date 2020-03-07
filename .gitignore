@@ -7,3 +7,4 @@ tmux_hendrix.conf
 .coverage
 coverage_html_report
 tlgrm_secrets.py
+node_modules
