@@ -21,6 +21,7 @@ command = 'send'
 
 @bot.message_handler(content_types=["text"], commands=['send'])
 def forward_messages(message):
+    logger.debug('debug [%s]: [%s]', HENDRIX_CHANNEL, message)
     if message.from_user.id == tlgrm_secrets.chat_id:
         logger.info('[%s]: [%s]', HENDRIX_CHANNEL, message.text)
         try:

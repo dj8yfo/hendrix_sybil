@@ -25,7 +25,7 @@ class MessageProtoHandler(AioredisWorker):
     REQ_MSG_KEYS = ['action']
     SUCCESS = 'success'
     ERROR = 'error'
-    MAX_MESSAGES = 126
+    MAX_MESSAGES = 123
     MAX_RETRIES = 13
     PAGE = 10
 
