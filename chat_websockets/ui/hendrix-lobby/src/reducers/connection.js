@@ -5,10 +5,12 @@ import {
     CONNECT_TO_WS_CLOSED,
     WS_MESSAGE_RECEIVED,
 } from '../actions/connectionActions.js'
+import { PROTO_AUTH_SUCCESS } from '../actions/proto'
 const initialState = {
     message: 'not initialized',
     connected: false,
     connecting: false,
+    authenticated: false,
     error: '',
 }
 
@@ -42,6 +44,7 @@ export function connectionReducer(state = initialState, action) {
                 ...state,
                 connecting: false,
                 connected: false,
+                authenticated: false,
                 message: 'exited lobby',
             }
         case WS_MESSAGE_RECEIVED:
@@ -49,6 +52,12 @@ export function connectionReducer(state = initialState, action) {
             return {
                 ...state,
                 message: action.payload.data,
+            }
+
+        case PROTO_AUTH_SUCCESS:
+            return {
+                ...state,
+                authenticated: true,
             }
         default:
             return state

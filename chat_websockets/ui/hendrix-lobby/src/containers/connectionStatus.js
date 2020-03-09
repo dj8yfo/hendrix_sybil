@@ -1,25 +1,56 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { connectToWs } from '../actions/connectionActions'
+import {
+    connectToWs,
+    connectionClose,
+    conn,
+} from '../actions/connectionActions'
+import { initAuthenticate } from '../actions/proto'
+import './connectionStatus.css'
 
 class ConnectionStatus extends React.Component {
     render() {
-        const { connection, initConnect } = this.props
+        const { connection, initConnect, initAuthenticate } = this.props
         return (
-            <div className="conn_status">
-                <button
-                    disabled={connection.connected || connection.connecting}
-                    onClick={initConnect}
-                >
-                    Join lobby
-                </button>
-                <p> latest message: {connection.message}</p>
-                <p>
-                    status:{' '}
-                    {connection.connected ? 'connected' : 'disconnected'}
-                </p>
-                {connection.connecting ? <p>Connecting...</p> : null}
-                <div>Error: {connection.error}</div>
+            <div>
+                <div className="centered">
+                    <button
+                        className="btn"
+                        disabled={connection.connected || connection.connecting}
+                        onClick={initConnect}
+                    >
+                        enter lobby
+                    </button>
+                    <button
+                        className="btn"
+                        disabled={
+                            connection.authenticated ||
+                            !connection.connected ||
+                            connection.connecting
+                        }
+                        onClick={initAuthenticate}
+                    >
+                        choose a sleeve
+                    </button>
+                    <button
+                        className="btn"
+                        disabled={
+                            !(connection.connected || connection.connecting)
+                        }
+                        onClick={connectionClose}
+                    >
+                        leave hendrix
+                    </button>
+                </div>
+                <div>
+                    <p> latest message: {connection.message}</p>
+                    <p>
+                        status:{' '}
+                        {connection.connected ? 'connected' : 'disconnected'}
+                    </p>
+                    {connection.connecting ? <p>Connecting...</p> : null}
+                    <div>Error: {connection.error}</div>
+                </div>
             </div>
         )
     }
@@ -35,6 +66,7 @@ const mapStateToProps = store => {
 const mapDispatchToProps = dispatch => {
     return {
         initConnect: () => dispatch(connectToWs()),
+        initAuthenticate: () => dispatch(initAuthenticate(conn)),
     }
 }
 
