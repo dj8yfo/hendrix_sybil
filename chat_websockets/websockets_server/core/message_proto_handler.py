@@ -81,7 +81,7 @@ class MessageProtoHandler(AioredisWorker):
 
     rooms_specifics = {  # nesting dicts infinetely is a beautiful design
         'Lobby': {
-            'personal_tip': '/menu - to see what\'s on the hotel menu',
+            'personal_tip': 'type /menu - to see what\'s on the hotel menu',
             'queries': {
                 '/menu': {
                     'required_args': [],

@@ -29,9 +29,14 @@ footer, header, hgroup, menu, nav, section {
         src: url(first_font1.woff);
 }
 
+@font-face {
+        font-family: mySecondFont;
+        src: url(second_font2.woff);
+}
+
 body {
         line-height: 1;
-        font-family: myFirstFont;
+        font-family: myFirstFont, mySecondFont;
         font-size: 105%;
         background-color: #000000;
         color: #ffffff;
@@ -91,9 +96,7 @@ h3 {
         border: none;
         border-radius: 2px;
         display: inline-block;
-        height: 36px;
-        line-height: 36px;
-        font-size: 16px;
+        height: 20px;
         outline: 0;
         padding: 0 2rem;
         text-transform: uppercase;
@@ -102,8 +105,9 @@ h3 {
         background-color: #666666;
         text-align: center;
         letter-spacing: .5px;
-        transition: .2s ease-out;
+        transition: 2.0s ease-out;
         cursor: pointer;
+        margin-bottom: 2px;
 }
 .btn:hover {
         background-color: #000000

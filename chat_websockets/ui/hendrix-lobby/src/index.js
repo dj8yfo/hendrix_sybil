@@ -18,6 +18,4 @@ ReactDOM.render(
 // unregister() to register() below. Note this comes with some pitfalls.
 // Learn more about service workers: https://bit.ly/CRA-PWA
 
-//handleVKlogin(console.log, console.log)
-//getMorePhotos(0, 200, 2019, console.log, console.log)
 serviceWorker.unregister()
