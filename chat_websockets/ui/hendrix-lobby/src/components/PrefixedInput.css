@@ -1,0 +1,14 @@
+.prefixed-input {
+        width: 30em;
+        height: 2em;
+        padding-left: 1.5em;
+        background-color: #000000;
+        font: inherit;
+        color: #ffffff;
+}
+
+.inside-prefixed-input {
+        margin-left: -31em;
+        margin-right: 15em;
+        color: #ffffff;
+}

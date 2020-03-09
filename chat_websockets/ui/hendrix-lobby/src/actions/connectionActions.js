@@ -3,7 +3,6 @@ export const CONNECT_TO_WS_REQUEST = 'CONNECT_TO_WS_REQUEST'
 export const CONNECT_TO_WS_ESTABLISHED = 'CONNECT_TO_WS_ESTABLISHED'
 export const CONNECT_TO_WS_ERRORED = 'CONNECT_TO_WS_ERRORED'
 export const CONNECT_TO_WS_CLOSED = 'CONNECT_TO_WS_CLOSED'
-export const WS_MESSAGE_RECEIVED = 'WS_MESSAGE_RECEIVED'
 
 export let conn = null
 export function connectToWs() {
@@ -32,7 +31,7 @@ export function connectToWs() {
             })
         }
 
-        conn.onmessage = message_received(WS_MESSAGE_RECEIVED, dispatch, conn)
+        conn.onmessage = message_received(dispatch, conn)
         console.log(conn)
     }
 }

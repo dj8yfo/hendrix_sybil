@@ -10,6 +10,7 @@ import './connectionStatus.css'
 
 class ConnectionStatus extends React.Component {
     render() {
+        console.log('<ConnectionStatus/ >')
         const { connection, initConnect, initAuthenticate } = this.props
         return (
             <div>
@@ -21,6 +22,8 @@ class ConnectionStatus extends React.Component {
                     >
                         enter lobby
                     </button>
+                </div>
+                <div className="centered">
                     <button
                         className="btn"
                         disabled={
@@ -32,6 +35,8 @@ class ConnectionStatus extends React.Component {
                     >
                         choose a sleeve
                     </button>
+                </div>
+                <div className="centered">
                     <button
                         className="btn"
                         disabled={
@@ -43,7 +48,6 @@ class ConnectionStatus extends React.Component {
                     </button>
                 </div>
                 <div>
-                    <p> latest message: {connection.message}</p>
                     <p>
                         status:{' '}
                         {connection.connected ? 'connected' : 'disconnected'}
@@ -57,7 +61,6 @@ class ConnectionStatus extends React.Component {
 }
 
 const mapStateToProps = store => {
-    console.log(store)
     return {
         connection: store.connection,
     }
