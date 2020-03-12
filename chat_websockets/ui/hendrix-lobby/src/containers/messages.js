@@ -115,7 +115,7 @@ class Messages extends React.Component {
                     style={{
                         position: 'relative',
                         height: '600px',
-                        width: '800px',
+                        width: '600px',
                         overflow: 'scroll',
                         overflowX: 'hidden',
                         scrollbarWidth: 'thin',

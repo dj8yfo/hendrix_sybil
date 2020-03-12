@@ -203,7 +203,7 @@ class HXApplication(web.Application, TmpltRedisRoutines):
         self.logger.info("HXApplication: attaching websocket view")
         self.logger.info("available nyms: %s", nyms)
         self.router.add_get("/ws", views.WebSocketView)
-        self.router.add_static("/static", "./ui/")
+        self.router.add_static("/", "./ui/hendrix-lobby/build/")
         redis_addr = (settings.REDIS_HOST, settings.REDIS_PORT)
         channels_handlers = [(settings.ROUNDTRIP_CHANNEL, self.process_msg_inbound)]
         channels_handlers += [(settings.HENDRIX_CHANNEL, self.process_msg_admin)]
