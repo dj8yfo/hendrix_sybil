@@ -1,0 +1,8 @@
+<p><a href="#" onclick="substituteLinkCotent(this.text)">/rent-room</a> <font color="cyan">hash room-name</font></p>
+  
+<p>
+1. prepare a transaction to <a href="https://www.etherchain.org/account/e96e2181f6166a37ea4c04f6e6e2bd672d72acc1">0xE96E2181F6166A37EA4C04F6E6E2bD672D72Acc1</a>. <br>
+2. notify hendrix premises of the transaction <font color="cyan">hash</font> with the above command. <br>
+3. broadcast the transaction to the network. <br>
+<font size=-1>0. rent <font color="#0000ff">fee</font>: 0.01 coin per day</font>
+</p>

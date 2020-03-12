@@ -6,8 +6,17 @@ import {
     PROTO_SELROOM_SUCCESS,
     PROTO_SELROOM_FAIL,
     PROTO_UNKNOWN,
+    PROTO_SEND_MSG,
 } from '../actions/proto'
+import {
+    PROTO_MSG_RCVD,
+    PROTO_MSG_FAIL,
+    PROTO_HISTORY_GET_STARTED,
+    PROTO_HISTORY_FAIL,
+    PROTO_HISTORY_SUCCESS,
+} from '../actions/messages'
 import { CONNECT_TO_WS_CLOSED } from '../actions/connectionActions'
+import { clearToken } from '../utils/utils'
 
 const initialState = {
     wsLastMessage: null,
@@ -16,14 +25,6 @@ const initialState = {
     room: null,
     perPage: null,
     lastMessage: null, //proto - room last msg pointer/counter
-}
-
-function clearToken(state, recvdToken) {
-    if (recvdToken === state.pendingMsgToken) {
-        return ''
-    } else {
-        return state.pendingMsgToken
-    }
 }
 
 export function protoReducer(state = initialState, action) {
@@ -68,6 +69,36 @@ export function protoReducer(state = initialState, action) {
                 lastMessage: action.payload.lastMessage,
             }
         case PROTO_SELROOM_FAIL:
+            return {
+                ...state,
+                pendingMsgToken: clearToken(state, action.payload.token),
+            }
+        case PROTO_SEND_MSG:
+            return {
+                ...state,
+                pendingMsgToken: action.payload,
+            }
+        case PROTO_MSG_RCVD:
+            return {
+                ...state,
+                pendingMsgToken: clearToken(state, action.payload.token),
+            }
+        case PROTO_MSG_FAIL:
+            return {
+                ...state,
+                pendingMsgToken: clearToken(state, action.payload.token),
+            }
+        case PROTO_HISTORY_GET_STARTED:
+            return {
+                ...state,
+                pendingMsgToken: action.payload,
+            }
+        case PROTO_HISTORY_FAIL:
+            return {
+                ...state,
+                pendingMsgToken: clearToken(state, action.payload),
+            }
+        case PROTO_HISTORY_SUCCESS:
             return {
                 ...state,
                 pendingMsgToken: clearToken(state, action.payload.token),

@@ -1,12 +1,14 @@
 import { v4 as uuidv4 } from 'uuid'
-import { handleRegularMessageRcvd } from './messages'
+import { handleRegularMessageRcvd, handleHistoryRcvd } from './messages'
 export const PROTO_AUTH_STARTED = 'PROTO_AUTH_STARTED'
 export const PROTO_AUTH_SUCCESS = 'PROTO_AUTH_SUCCESS'
 export const PROTO_AUTH_FAIL = 'PROTO_AUTH_FAIL'
 export const PROTO_SELROOM_STARTED = 'PROTO_SELROOM_STARTED'
 export const PROTO_SELROOM_SUCCESS = 'PROTO_SELROOM_SUCCESS'
 export const PROTO_SELROOM_FAIL = 'PROTO_SELROOM_FAIL'
+export const PROTO_SEND_MSG = 'PROTO_SEND_MSG'
 export const PROTO_UNKNOWN = 'PROTO_UNKNOWN'
+export const PROTO_STUB_ACTION = 'PROTO_STUB_ACTION'
 
 const defaultRoom = 'Lobby'
 
@@ -17,7 +19,6 @@ export function initAuthenticate(connection) {
             action: 'authenticate',
             token: msgToken,
         }
-        window.prompt('Please, enter the desired sleeve model:', 'Khumalo ...')
         dispatch({
             type: PROTO_AUTH_STARTED,
             payload: msgToken,
@@ -38,6 +39,35 @@ export function initSelectroom(connection, dstRoom) {
             payload: msgToken,
         })
         connection.send(JSON.stringify(selectRoomMessage))
+    }
+}
+
+export const sendMessage = (message, connection) => {
+    const msgToken = uuidv4()
+    let sendmessage = {
+        action: 'send_message',
+        token: msgToken,
+        content: message,
+    }
+    connection.send(JSON.stringify(sendmessage))
+    return {
+        type: PROTO_SEND_MSG,
+        payload: msgToken,
+    }
+}
+
+export const sendQueryMenu = connection => {
+    const msgToken = uuidv4()
+    let sendmessage = {
+        action: 'query',
+        token: msgToken,
+        query_name: '/menu',
+        parameters: {},
+    }
+    connection.send(JSON.stringify(sendmessage))
+    return {
+        type: PROTO_SEND_MSG,
+        payload: msgToken,
     }
 }
 
@@ -66,6 +96,9 @@ export function message_received(dispatch, connection) {
             case 'send_message':
                 handleRegularMessageRcvd(protoMsg, dispatch)
                 break
+            case 'history_retrieve':
+                handleHistoryRcvd(protoMsg, dispatch)
+                break
             default:
                 dispatch({
                     type: PROTO_UNKNOWN,
@@ -74,9 +107,6 @@ export function message_received(dispatch, connection) {
         }
     }
 }
-const alert1 = "You've been resleeved to a stock option:"
-const alert2 =
-    '\nRegular customers of Hendrix are offered a wide selection of bespoke sleeves.'
 function handleAuthenticate(protoMsg, dispatch, connection) {
     switch (protoMsg.status) {
         case 'success':
@@ -87,7 +117,6 @@ function handleAuthenticate(protoMsg, dispatch, connection) {
                     nym: protoMsg.msg.from_nym,
                 },
             })
-            alert(`${alert1} ${protoMsg.msg.from_nym}. ${alert2}`)
             initSelectroom(connection, defaultRoom)(dispatch)
             break
         case 'error':

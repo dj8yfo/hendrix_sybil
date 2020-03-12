@@ -243,7 +243,8 @@ class HXApplication(web.Application, TmpltRedisRoutines):
                 meth = getattr(self, handler)
                 await meth(msg, ws_id)
 
-            await self.state.send_message(ws_id, msg)
+            if msg['msg']['room'] != 'loopback_secret_room':
+                await self.state.send_message(ws_id, msg)
             if self.state.closed[ws_id]:
                 await self.state.close_connection(
                     ws_id, code=views.good_exit_code, message=views.good_exit_message
@@ -286,7 +287,8 @@ class HXApplication(web.Application, TmpltRedisRoutines):
         if ws_id in self.state:
             found_room = self.state.websockets[ws_id]["room"]
             payload, _ = MessageProtoHandler.send_message_layout(
-                message_content, found_room, "hendrix", ws_id=None
+                message_content, found_room, "hendrix", ws_id=None,
+                token=msg['msg']['token']
             )
             await self.state.send_message(ws_id, payload)
         else:

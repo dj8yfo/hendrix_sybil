@@ -190,7 +190,8 @@ async def test_select_room(client1, client2, app):
                 'room': 'custom_room',
                 'from_nym': 'hendrix',
                 'date_created': ANY,
-                'seq': -1
+                'seq': -1,
+                'token': ANY,
             }
         }
         assert json.loads(announce1) == exp_join_announce
@@ -221,7 +222,8 @@ async def test_select_room(client1, client2, app):
                 'room': 'custom_room',
                 'from_nym': 'hendrix',
                 'date_created': ANY,
-                'seq': -1
+                'seq': -1,
+                'token': ANY,
             }
         }
         assert json.loads(announce_change) == exp_join_announce
@@ -249,7 +251,8 @@ async def test_select_room(client1, client2, app):
                 'room': 'custom_room',
                 'from_nym': 'hendrix',
                 'date_created': ANY,
-                'seq': -1
+                'seq': -1,
+                'token': ANY,
             }
         }
         assert json.loads(close_announce) == exp_close_announce
@@ -331,20 +334,22 @@ async def test_select_room_query_help(client1, client2, app):
         assert len(app.state.rooms['Lobby']) == 2
         query_msg = {'action': 'query', 'query_name': '/menu', 'parameters': {}}
         await ws_resp1.send_str(json.dumps(query_msg))
-        query_resp1 = await ws_resp1.receive_str()
+        for message in lobby_help.messages:
+            query_resp1 = await ws_resp1.receive_str()
 
-        query_resp_exp = {
-            'status': 'success',
-            'msg': {
-                'action': 'send_message',
-                'content': lobby_help.message,
-                'room': 'Lobby',
-                'from_nym': 'hendrix',
-                'date_created': ANY,
-                'seq': -1
+            query_resp_exp = {
+                'status': 'success',
+                'msg': {
+                    'action': 'send_message',
+                    'content': message,
+                    'room': 'Lobby',
+                    'from_nym': 'hendrix',
+                    'date_created': ANY,
+                    'seq': -1,
+                    'token': ANY,
+                }
             }
-        }
-        assert json.loads(query_resp1) == query_resp_exp
+            assert json.loads(query_resp1) == query_resp_exp
 
     finally:
         await ws_resp1.close()
@@ -386,7 +391,8 @@ async def test_close_connection_with_room(client1, client2, app):
                 'room': 'custom_room',
                 'from_nym': 'hendrix',
                 'date_created': ANY,
-                'seq': -1
+                'seq': -1,
+                'token': ANY,
             }
         }
         assert json.loads(close_announce) == exp_close_announce
@@ -474,7 +480,8 @@ async def test_exchange_messages_multi_clients(app, *clients):
                         'room': 'custom_room',
                         'from_nym': 'hendrix',
                         'date_created': ANY,
-                        'seq': -1
+                        'seq': -1,
+                        'token': ANY,
                     }
                 }
                 assert json.loads(announce) == exp_join_announce
@@ -516,7 +523,8 @@ async def test_exchange_messages_multi_clients(app, *clients):
                         'room': 'custom_room',
                         'from_nym': 'hendrix',
                         'date_created': ANY,
-                        'seq': -1
+                        'seq': -1,
+                        'token': ANY,
                     }
                 }
                 assert json.loads(announce) == exp_join_announce

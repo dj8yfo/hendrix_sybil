@@ -1,5 +1,5 @@
 .prefixed-input {
-        width: 30em;
+        width: 600px;
         height: 2em;
         padding-left: 1.5em;
         background-color: #000000;
@@ -8,7 +8,13 @@
 }
 
 .inside-prefixed-input {
-        margin-left: -31em;
+        margin-left: -35em;
         margin-right: 15em;
         color: #ffffff;
+}
+
+.shifted-btn {
+        width: 30px;
+        height: 30px;
+        margin-left: 26em;
 }
