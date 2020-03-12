@@ -81,7 +81,7 @@ class MessageProtoHandler(AioredisWorker):
 
     rooms_specifics = {  # nesting dicts infinetely is a beautiful design
         'Lobby': {
-            'personal_tip': 'type /menu - to see what\'s on the hotel menu',
+            'personal_tip': f'<p>type <a id="menu" href="#" onclick="substituteLinkCotent(this.text)">/menu</a> - to see what\'s on the hotel menu</p>',
             'queries': {
                 '/menu': {
                     'required_args': [],
@@ -97,7 +97,8 @@ class MessageProtoHandler(AioredisWorker):
 
     @staticmethod
     def send_message_layout(content, room, from_nym, ws_id='broadcast',
-                            date_created=time.time(), seq=-1, channel=ROUNDTRIP_CHANNEL):
+                            date_created=time.time(), seq=-1, channel=ROUNDTRIP_CHANNEL,
+                            token=None):
         template = {
             "ws_id": ws_id,
             "status": "success",
@@ -107,7 +108,8 @@ class MessageProtoHandler(AioredisWorker):
                 "from_nym": from_nym,
                 "date_created": date_created,
                 "room": room,
-                "seq": seq
+                "seq": seq,
+                "token": token,
             }
         }
 
@@ -120,10 +122,13 @@ class MessageProtoHandler(AioredisWorker):
         try:
             msg = json.loads(msg_raw)
         except json.JSONDecodeError as jse:
+            logger.debug("msg_raw: [%s]", msg_raw)
             raise ValueError('invalid json encoding of incoming message') from jse
         if not isinstance(msg, Mapping):
+            logger.debug("msg_raw: [%s]", msg_raw)
             raise ValueError(f'the {msg} has to be a mapping')
         if not all(msg.get(key) for key in cls.REQ_MSG_KEYS):
+            logger.debug("msg_raw: [%s]", msg_raw)
             raise ValueError(f'not all keys present in incoming message: {msg} |'
                              f'{cls.REQ_MSG_KEYS}')
         return msg
@@ -183,8 +188,10 @@ class MessageProtoHandler(AioredisWorker):
             meth = getattr(self, handler)
             return await meth(msg, ws_id) or [self.success_response(msg, ws_id)]
         except (KeyError, AttributeError) as ke:
+            logger.error('\n%s', traceback.format_exc())
             return [self.error_response(msg, ws_id, f'missing handler for action {ke}')]
         except ValueError as ve:
+            logger.error('\n%s', traceback.format_exc())
             return [self.error_response(msg, ws_id, ve)]
         except ValidationError as ve:
             logger.error('\n%s', traceback.format_exc())
@@ -315,11 +322,16 @@ class MessageProtoHandler(AioredisWorker):
                     f'[ {arg_name} ] parameter {value} not of required type {arg_type}')
 
     async def handle_menu_lobby(self, msg, query_parameters, ws_id):
-        from .queries.lobby_help import message
-        personal_msg = self.send_message_layout(
-            content=message, room=None, from_nym=None,
-            ws_id=ws_id, channel=HENDRIX_CHANNEL)
-        return [personal_msg]
+        from .queries.lobby_help import messages
+        res = []
+        content = f"Perfect!"
+        res.append(self.send_message_layout(content, ws_id=ws_id, room='loopback_secret_room', from_nym='hendrix'))
+        for message in messages:
+            personal_msg = self.send_message_layout(
+                content=message, room=None, from_nym=None,
+                ws_id=ws_id, channel=HENDRIX_CHANNEL, token=msg.get('token'))
+            res.append(personal_msg)
+        return res
 
     def success_response(self, msg, ws_id, channel=ROUNDTRIP_CHANNEL):
         return {

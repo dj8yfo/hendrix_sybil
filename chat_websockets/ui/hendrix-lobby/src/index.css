@@ -34,10 +34,14 @@ footer, header, hgroup, menu, nav, section {
         src: url(second_font2.woff);
 }
 
+a, a:link, a:visited {
+  color: magenta;
+}
+
 body {
         line-height: 1;
         font-family: myFirstFont, mySecondFont;
-        font-size: 105%;
+       font-size: 110%;
         background-color: #000000;
         color: #ffffff;
         font-weight: bolder;
@@ -74,15 +78,6 @@ h3 {
         display: inline-block;
 }
 
-.page {
-        width: 80%;
-}
-
-.user {
-        width: 20%;
-        vertical-align: top;
-}
-
 .btn:disabled {
         background-color: #000000;
         color: #000;
@@ -92,17 +87,31 @@ h3 {
         cursor: default;
 }
 
+.btn:enabled {
+        animation: shadow-pulse 3s infinite;
+}
+
+@keyframes shadow-pulse
+{
+     0% {
+          box-shadow: 0 0 0 0px rgba(0, 0, 0, 0.8);
+     }
+     100% {
+          box-shadow: 0 0 0 20px rgba(0, 0, 0, 0);
+     }
+}
+
 .btn {
         border: none;
         border-radius: 2px;
         display: inline-block;
-        height: 20px;
+        /*height: 20px;*/
         outline: 0;
-        padding: 0 2rem;
+        padding: 0.2rem;
         text-transform: uppercase;
         vertical-align: middle;
         color: #fff;
-        background-color: #666666;
+        background-color: #444444;
         text-align: center;
         letter-spacing: .5px;
         transition: 2.0s ease-out;

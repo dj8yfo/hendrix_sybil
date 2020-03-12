@@ -1,5 +1,6 @@
 import React from 'react'
 import { connect } from 'react-redux'
+import { PropTypes } from 'prop-types'
 import {
     connectToWs,
     connectionClose,
@@ -73,4 +74,14 @@ const mapDispatchToProps = dispatch => {
     }
 }
 
+ConnectionStatus.propTypes = {
+    connection: PropTypes.shape({
+        connected: PropTypes.bool.isRequired,
+        connecting: PropTypes.bool.isRequired,
+        authenticated: PropTypes.bool.isRequired,
+        error: PropTypes.string.isRequired,
+    }),
+    initConnect: PropTypes.func.isRequired,
+    initAuthenticate: PropTypes.func.isRequired,
+}
 export default connect(mapStateToProps, mapDispatchToProps)(ConnectionStatus)

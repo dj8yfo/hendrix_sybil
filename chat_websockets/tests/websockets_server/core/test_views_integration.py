@@ -123,7 +123,8 @@ async def test_select_room(patched_nyms_cli):
             'room': 'custom_quiet_room',
             'from_nym': 'hendrix',
             'date_created': ANY,
-            'seq': -1
+            'seq': -1,
+            'token': ANY,
         }
     }
     announce_mes = await ws_resp.receive_str()
@@ -151,7 +152,8 @@ async def test_select_room_personal_timp(patched_nyms_cli):
             'room': 'Lobby',
             'from_nym': 'hendrix',
             'date_created': ANY,
-            'seq': -1
+            'seq': -1,
+            'token': ANY,
         }
     }
     assert json.loads(personal_msg) == exp_personal_msg or\

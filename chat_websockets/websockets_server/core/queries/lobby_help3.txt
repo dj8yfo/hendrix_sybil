@@ -1,0 +1,6 @@
+<p><a href="#" onclick="substituteLinkCotent(this.text)">/rent-lavatory-room</a> <font color="cyan">room-name</font></p>
+<p>
+1. you feel desolate and ultimately poor. <br>
+2. try the above command. <br>
+<font size=-1>0. the <font color="cyan">room-name</font> is <font color="#0000ff">public</font>, you may or may not meet strangers therein.</font>
+</p>
