@@ -55,15 +55,6 @@ class PrefixedInput extends React.Component {
         const { disabled } = this.props
         return (
             <div>
-                <input
-                    id="unique_say"
-                    className="prefixed-input"
-                    type="text"
-                    onKeyPress={this.keyPrsHandler}
-                    disabled={disabled}
-                    ref={this.input}
-                />
-                <span className="inside-prefixed-input">$</span>
                 <button
                     className="btn shifted-btn"
                     onClick={this.btnClickHandler}
@@ -72,6 +63,17 @@ class PrefixedInput extends React.Component {
                     {' '}
                     say
                 </button>
+                <div className="pref-input-container">
+                    <input
+                        id="unique_say"
+                        className="prefixed-input"
+                        type="text"
+                        onKeyPress={this.keyPrsHandler}
+                        disabled={disabled}
+                        ref={this.input}
+                    />
+                    <span className="inside-prefixed-input">$</span>
+                </div>
             </div>
         )
     }

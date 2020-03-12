@@ -50,7 +50,7 @@ class MessageEntry extends React.Component {
     render() {
         const { value } = this.props
         const isHendrix = value.from_nym === 'hendrix'
-        const compWidth = isHendrix ? 540 : 540
+        const compWidth = isHendrix ? 400 : 400
         const dateTime = timeConverter(value.date_created)
         const date = dateTime[0]
         const time = dateTime[1]
