@@ -16,8 +16,6 @@ class ChatProto extends React.Component {
         let menu = proto.room === 'Lobby' ? sendQueryMenu : () => {}
         return (
             <div className="chat-proto">
-                <p> latest message: {proto.wsLastMessage}</p>
-                <p> msg pending: {proto.pendingMsgToken} </p>
                 <PrefixedInput
                     sender={sendMessage}
                     query={menu}
@@ -46,7 +44,7 @@ const mapDispatchToProps = dispatch => {
 
 ChatProto.propTypes = {
     proto: PropTypes.shape({
-        wsLastMessage: PropTypes.string,
+        unhandledWsMessage: PropTypes.string,
         nym: PropTypes.string,
         pendingMsgToken: PropTypes.string.isRequired,
         room: PropTypes.string,

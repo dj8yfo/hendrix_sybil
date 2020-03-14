@@ -97,8 +97,10 @@ class MessageProtoHandler(AioredisWorker):
 
     @staticmethod
     def send_message_layout(content, room, from_nym, ws_id='broadcast',
-                            date_created=time.time(), seq=-1, channel=ROUNDTRIP_CHANNEL,
+                            date_created=time.time, seq=-1, channel=ROUNDTRIP_CHANNEL,
                             token=None):
+        if callable(date_created):
+            date_created = date_created()
         template = {
             "ws_id": ws_id,
             "status": "success",
@@ -264,7 +266,6 @@ class MessageProtoHandler(AioredisWorker):
         data = {'content': msg['content'],
                 'from_nym': msg['from_nym'],
                 }
-
         for retry in range(self.MAX_RETRIES + 1):
             try:
                 with transaction.atomic():

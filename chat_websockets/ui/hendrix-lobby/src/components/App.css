@@ -2,6 +2,17 @@
   text-align: center;
 }
 
+.block-msg {
+        display: inline-block;
+        vertical-align: middle;
+        height: auto;
+}
+
+div.centered {
+        display: flex;
+        justify-content: center
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;
@@ -13,18 +24,36 @@
   }
 }
 
+.greyish {
+  background-color: #222222;
+}
+.table {
+        display: table;
+        table-layout: fixed;
+}
+
+.cell {
+        display: table-cell;
+        vertical-align: middle;
+}
+
+.group-header {
+        display: table-row;
+}
+
+
 .App-header {
   text-transform: uppercase;
-  background-color: #222222;
-  min-height: 8vh;
-  display: flex;
-  flex-direction: column;
+  height: auto;
+  /*display: flex;*/
   align-items: center;
+  text-align: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  font-size: calc(10px + 4vmin);
   font-weight: bold;
   color: white;
 }
+
 
 .App-link {
   color: #61dafb;

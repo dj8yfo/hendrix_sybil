@@ -1,7 +1,15 @@
 import React from 'react'
 import { PropTypes } from 'prop-types'
 import './MessageEntry.css'
+import { isMobileLayout } from '../utils/utils'
+import classNames from 'classnames'
 
+export let compWidth
+if (isMobileLayout()) {
+    compWidth = 260
+} else {
+    compWidth = 600
+}
 function timeConverter(UNIX_timestamp) {
     var a = new Date(UNIX_timestamp * 1000)
     var months = [
@@ -22,8 +30,11 @@ function timeConverter(UNIX_timestamp) {
     var month = months[a.getMonth()]
     var date = a.getDate()
     var hour = a.getHours()
+    hour = hour < 10 ? '0' + hour : hour
     var min = a.getMinutes()
+    min = min < 10 ? '0' + min : min
     var sec = a.getSeconds()
+    sec = sec < 10 ? '0' + sec : sec
     var time = hour + ':' + min + ':' + sec
     var dater = date + ' ' + month + ' ' + year + ' '
     return [dater, time]
@@ -48,34 +59,46 @@ class MessageEntry extends React.Component {
     }
 
     render() {
-        const { value } = this.props
+        const { value, color } = this.props
         const isHendrix = value.from_nym === 'hendrix'
-        const compWidth = isHendrix ? 400 : 400
+
         const dateTime = timeConverter(value.date_created)
         const date = dateTime[0]
         const time = dateTime[1]
+        const imageClass = classNames('bg-border-blur')
+        const blurredClass = classNames(
+            { 'bg-image-blur': !isHendrix },
+            'image-frame',
+            'block-msg'
+        )
         return (
             <div className="entry-msg">
-                <div className="image-frame block-msg">
-                    {isHendrix ? (
-                        <img
-                            src="./hendrix.gif"
-                            alt="hendrix"
-                            width={68}
-                            height={90}
-                        ></img>
-                    ) : (
-                        <img
-                            src="./djunxiety.webp"
-                            alt="djunxiety"
-                            width={68}
-                            height={58}
-                        ></img>
-                    )}
+                <div className={blurredClass}>
+                    <div className={imageClass}>
+                        {isHendrix ? (
+                            <img
+                                src="./hendrix.gif"
+                                alt="hendrix"
+                                className="immg"
+                                width={68}
+                                height={90}
+                            ></img>
+                        ) : (
+                            <img
+                                src="./djunxiety.webp"
+                                alt="djunxiety"
+                                className="immg"
+                                width={68}
+                                height={58}
+                            ></img>
+                        )}
+                    </div>
                 </div>
                 <div className="block-msg msg-header">
                     {!isHendrix ? (
-                        <div className="nym-content">{`${value.from_nym}`}</div>
+                        <div className="nym-content">
+                            <font color={color}>{`${value.from_nym}`}</font>
+                        </div>
                     ) : null}
                     <div className="date-msg">{date}</div>
                     <div className="date-msg">{time}</div>
@@ -96,5 +119,6 @@ MessageEntry.propTypes = {
         from_nym: PropTypes.string.isRequired,
         token: PropTypes.string,
     }),
+    color: PropTypes.string.isRequired,
 }
 export { MessageEntry }

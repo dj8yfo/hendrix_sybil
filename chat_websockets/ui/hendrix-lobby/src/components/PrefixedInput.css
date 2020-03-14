@@ -1,20 +1,39 @@
 .prefixed-input {
-        width: 500px;
         height: 2em;
         padding-left: 1.5em;
         background-color: #000000;
-        font: inherit;
         color: #ffffff;
 }
 
 .inside-prefixed-input {
-        margin-left: -29.5em;
-        margin-right: 15em;
+        margin-left: -620px;
+        margin-right: 5em;
         color: #ffffff;
 }
 
-.shifted-btn {
-        width: 30px;
-        height: 30px;
-        margin-left: 13em;
+.block-msg-wide {
+        width: 100%;
+        /*display: inline-block;*/
+}
+.big-btn {
+        border: none;
+        border-radius: 2px;
+        display: block;
+        width: 100%;
+        height: 40px;
+        outline: 0;
+        /*padding: 0.2rem;*/
+        text-transform: uppercase;
+        vertical-align: middle;
+        color: #fff;
+        text-align: center;
+        letter-spacing: .5px;
+        transition: 2.0s ease-out;
+        cursor: pointer;
+        margin-bottom: 5px;
+}
+
+
+.big-btn:enabled {
+        animation: shadow-pulse 3s infinite;
 }

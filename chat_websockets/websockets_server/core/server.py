@@ -284,6 +284,8 @@ class HXApplication(web.Application, TmpltRedisRoutines):
         msg = json.loads(raw_msg)
         ws_id = msg.pop("ws_id")
         message_content = msg["msg"]["content"]
+        if message_content.startswith('PPP:'):
+            message_content = message_content[4:]
         if ws_id in self.state:
             found_room = self.state.websockets[ws_id]["room"]
             payload, _ = MessageProtoHandler.send_message_layout(

@@ -1,8 +1,8 @@
-<p><a href="#" onclick="substituteLinkCotent(this.text)">/rent-room-touch-pay</a> <font color="cyan">number-of-days room-name</font></p>
+<p><a href="#" onclick="substituteLinkCotent(this.text)">/rent-room-touch-pay</a> <font color="cyan">days room-name</font></p>
 <p>
 1. submit the above command.<br>
 2. lick your thumb and touch the screen in front of you. <br>
-3. an amount, proportional to desired stay duration will be withdrawn from your dna-bound bank account. <br>
+3. an amount, proportional to desired stay duration <font color="cyan">days</font> will be withdrawn from your dna-bound bank account. <br>
 4. if the account has insufficient funds, some amount may still be withdrawn, depending on your bank accounting policy. <br>
 <font size=-1>0. rent <font color="#0000ff">fee</font>: 2 ecoin per day</font>
 </p>
