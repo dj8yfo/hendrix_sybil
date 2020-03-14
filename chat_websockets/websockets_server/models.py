@@ -12,7 +12,7 @@ class Room(models.Model):
 
 
 class Message(models.Model):
-    content = models.TextField()
+    content = models.CharField(max_length=1000)
     from_nym = models.CharField(max_length=100)
     date_created = models.DateTimeField(auto_now_add=True)
 

@@ -15,11 +15,14 @@ import {
     PROTO_HISTORY_FAIL,
     PROTO_HISTORY_SUCCESS,
 } from '../actions/messages'
-import { CONNECT_TO_WS_CLOSED } from '../actions/connectionActions'
+import {
+    CONNECT_TO_WS_CLOSED,
+    CONNECT_TO_WS_ESTABLISHED,
+} from '../actions/connectionActions'
 import { clearToken } from '../utils/utils'
 
 const initialState = {
-    wsLastMessage: null,
+    unhandledWsMessage: null,
     nym: null,
     pendingMsgToken: '', //false in boolean context
     room: null,
@@ -37,7 +40,12 @@ export function protoReducer(state = initialState, action) {
                 room: null,
                 perPage: null,
                 lastMessage: null,
-                wsLastMessage: 'exited lobby',
+                unhandledWsMessage: 'left Hendrix',
+            }
+        case CONNECT_TO_WS_ESTABLISHED:
+            return {
+                ...state,
+                unhandledWsMessage: 'shall set foot on Hendrix threshold',
             }
         case PROTO_AUTH_STARTED:
             return {
@@ -49,6 +57,7 @@ export function protoReducer(state = initialState, action) {
                 ...state,
                 pendingMsgToken: clearToken(state, action.payload.token),
                 nym: action.payload.nym,
+                unhandledWsMessage: 'consciousness uploaded',
             }
         case PROTO_AUTH_FAIL:
             return {
@@ -106,7 +115,7 @@ export function protoReducer(state = initialState, action) {
         case PROTO_UNKNOWN:
             return {
                 ...state,
-                wsLastMessage: action.payload,
+                unhandledWsMessage: action.payload,
             }
         default:
             return state

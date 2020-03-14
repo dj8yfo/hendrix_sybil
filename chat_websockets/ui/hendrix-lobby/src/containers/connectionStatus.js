@@ -1,60 +1,62 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { PropTypes } from 'prop-types'
-import {
-    connectToWs,
-    connectionClose,
-    conn,
-} from '../actions/connectionActions'
-import { initAuthenticate } from '../actions/proto'
 import './connectionStatus.css'
+import { prevMessages, isMobileLayout } from '../utils/utils'
+
+const alert1 = "You've been resleeved to a stock option: "
+const alert2 =
+    '\nRegular customers of Hendrix are offered a wide selection of bespoke sleeves.'
 
 class ConnectionStatus extends React.Component {
+    computeTooltip() {
+        const { proto } = this.props
+        return proto.pendingMsgToken || proto.unhandledWsMessage
+    }
     render() {
         console.log('<ConnectionStatus/ >')
-        const { connection, initConnect, initAuthenticate } = this.props
+        const { connection, messages, statusLast } = this.props
+        let prevMessage = prevMessages(messages.lastMessage)
+        let fsize = isMobileLayout() ? '80%' : '100%'
         return (
-            <div>
-                <div className="centered">
-                    <button
-                        className="btn"
-                        disabled={connection.connected || connection.connecting}
-                        onClick={initConnect}
-                    >
-                        enter lobby
-                    </button>
-                </div>
-                <div className="centered">
-                    <button
-                        className="btn"
-                        disabled={
-                            connection.authenticated ||
-                            !connection.connected ||
-                            connection.connecting
-                        }
-                        onClick={initAuthenticate}
-                    >
-                        choose a sleeve
-                    </button>
-                </div>
-                <div className="centered">
-                    <button
-                        className="btn"
-                        disabled={
-                            !(connection.connected || connection.connecting)
-                        }
-                        onClick={connectionClose}
-                    >
-                        leave hendrix
-                    </button>
-                </div>
+            <div
+                className="stats"
+                style={{
+                    fontSize: fsize,
+                }}
+            >
+                <p
+                    data-tooltip={JSON.stringify(statusLast.info)}
+                    data-tooltip-location="right"
+                >
+                    status:{' '}
+                    {connection.connected
+                        ? 'connected'
+                        : connection.connecting
+                        ? 'connecting'
+                        : 'disconnected'}
+                </p>
                 <div>
-                    <p>
-                        status:{' '}
-                        {connection.connected ? 'connected' : 'disconnected'}
-                    </p>
-                    {connection.connecting ? <p>Connecting...</p> : null}
-                    <div>Error: {connection.error}</div>
+                    sleeve:{' '}
+                    <text
+                        data-tooltip={`${alert1}${messages.nym}.\n${alert2}`}
+                        data-tooltip-location="right"
+                    >
+                        {messages.nym}
+                    </text>
+                </div>
+                <p> room: {messages.room}</p>
+                <p> prev messages: {prevMessage ? prevMessage : 'None'} </p>
+
+                <div>
+                    <div className="block-msg">
+                        <text
+                            data-tooltip={this.computeTooltip()}
+                            data-tooltip-location="right"
+                        >
+                            σ tip σ
+                        </text>
+                    </div>
                 </div>
             </div>
         )
@@ -64,13 +66,9 @@ class ConnectionStatus extends React.Component {
 const mapStateToProps = store => {
     return {
         connection: store.connection,
-    }
-}
-
-const mapDispatchToProps = dispatch => {
-    return {
-        initConnect: () => dispatch(connectToWs()),
-        initAuthenticate: () => dispatch(initAuthenticate(conn)),
+        messages: store.messages,
+        proto: store.proto,
+        statusLast: store.statusLast,
     }
 }
 
@@ -81,7 +79,9 @@ ConnectionStatus.propTypes = {
         authenticated: PropTypes.bool.isRequired,
         error: PropTypes.string.isRequired,
     }),
-    initConnect: PropTypes.func.isRequired,
-    initAuthenticate: PropTypes.func.isRequired,
+    proto: PropTypes.shape({
+        unhandledWsMessage: PropTypes.string,
+        pendingMsgToken: PropTypes.string.isRequired,
+    }),
 }
-export default connect(mapStateToProps, mapDispatchToProps)(ConnectionStatus)
+export default connect(mapStateToProps)(ConnectionStatus)

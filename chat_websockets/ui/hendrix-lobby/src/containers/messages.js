@@ -4,15 +4,16 @@ import { PropTypes } from 'prop-types'
 import { MessageEntry } from '../components/MessageEntry'
 import { conn } from '../actions/connectionActions'
 import { historyRetrieve } from '../actions/messages'
+import { compWidth } from '../components/MessageEntry'
+import { isMobileLayout, getRandomColor, prevMessages } from '../utils/utils'
 import './messages.css'
 
-const alert1 = "You've been resleeved to a stock option: "
-const alert2 =
-    '\nRegular customers of Hendrix are offered a wide selection of bespoke sleeves.'
-
+export let expwidth = compWidth + 200
+let imgdim = isMobileLayout ? 500 : 600
 class Messages extends React.Component {
     state = {
         lastScrollTop: null,
+        colors: {},
     }
     constructor(props) {
         super(props)
@@ -24,8 +25,12 @@ class Messages extends React.Component {
     }
     renderTemplate(messages) {
         var res = messages.map((value, index) => {
+            if (this.state.colors[value.from_nym] === undefined) {
+                this.state.colors[value.from_nym] = getRandomColor() // eslint-disable-line
+            }
+            let newcolor = this.state.colors[value.from_nym]
             let dkey = String(value.date_created) + index
-            return <MessageEntry key={dkey} value={value} />
+            return <MessageEntry key={dkey} value={value} color={newcolor} />
         })
         return res
     }
@@ -34,13 +39,6 @@ class Messages extends React.Component {
         this.props.historyRetrieve(lastMessage, room)
     }
 
-    prevMessages(lastMessage) {
-        if (lastMessage == null) {
-            return 0
-        }
-        let prevMessage = lastMessage > -1 ? lastMessage + 1 : null
-        return prevMessage > 0 ? prevMessage : 0
-    }
     scrollTopHandler = () => {
         const st = this.viewPort.current.scrollTop
         if (this.state.lastScrollTop == null) {
@@ -49,7 +47,7 @@ class Messages extends React.Component {
         }
         if (st > this.state.lastScrollTop) {
         } else {
-            if (st < 50) {
+            if (st < 10) {
                 const {
                     lastMessage,
                     room,
@@ -58,7 +56,7 @@ class Messages extends React.Component {
                 if (!this.historyDisabled(pendingMsgToken, room, lastMessage)) {
                     this.props.historyRetrieve(lastMessage, room)
                 }
-                if (this.prevMessages(lastMessage)) {
+                if (prevMessages(lastMessage)) {
                     this.viewPort.current.scrollTop = this.state.lastScrollTop
                     return
                 }
@@ -73,7 +71,8 @@ class Messages extends React.Component {
             pendingMsgToken,
             room,
             lastMessage,
-            nym,
+            closedscr,
+            notifyFlag,
         } = this.props.messages
         let historyDisabled = this.historyDisabled(
             pendingMsgToken,
@@ -81,31 +80,11 @@ class Messages extends React.Component {
             lastMessage
         )
 
-        let prevMessage = this.prevMessages(lastMessage)
         console.log(`history disabled: ${historyDisabled}`)
+        let colorScroll = notifyFlag ? '#999999' : '#444444'
         return (
             <div className="msgs">
-                <p> Messages </p>
-                <div>
-                    your sleeve:{'  '}
-                    <div className="tooltip">
-                        {nym}
-                        <div className="tooltiptext">
-                            <p>{`${alert1}${nym}.`}</p>
-                            <p>{`${alert2}`}</p>
-                        </div>
-                    </div>
-                </div>
-                <p> room: {room}</p>
-                {prevMessage ? <p> prev messages: {prevMessage} </p> : null}
-                <button
-                    className="btn"
-                    onClick={this.btnClickHandler}
-                    disabled={historyDisabled}
-                >
-                    {' '}
-                    hist
-                </button>
+                <div className="centered"></div>
 
                 <div
                     className="viewport"
@@ -114,22 +93,49 @@ class Messages extends React.Component {
                     onScroll={this.scrollTopHandler}
                     style={{
                         position: 'relative',
-                        height: '600px',
-                        width: '600px',
+                        height: '550px',
+                        width: `${expwidth}px`,
                         overflow: 'scroll',
                         overflowX: 'hidden',
-                        scrollbarWidth: 'thin',
-                        scrollbarColor: '#444444 #000000',
-                        marginBottom: '30px',
+                        scrollbarWidth: 'thick',
+                        scrollbarColor: `${colorScroll} #000000`,
+                        marginBottom: '10px',
                         border: '1px',
                         borderRight: '0px',
                         borderLeft: '0px',
                         borderBottom: '1px',
                         borderStyle: 'solid',
                         borderColor: '#444444',
+                        alignItems: 'center',
                     }}
                 >
-                    {this.renderTemplate(messages)}
+                    {closedscr ? (
+                        <div className="centered">
+                            <img
+                                src="./ecorp.gif"
+                                alt="hendrix"
+                                width={imgdim}
+                                height={imgdim}
+                            ></img>
+                        </div>
+                    ) : (
+                        <React.Fragment>
+                            <button
+                                className="shadowbtn btn"
+                                style={{
+                                    //width: `${expwidth}px`,
+                                    height: '20px',
+                                    width: `100%`,
+                                }}
+                                onClick={this.btnClickHandler}
+                                disabled={historyDisabled}
+                            >
+                                {' '}
+                                hist
+                            </button>
+                            {this.renderTemplate(messages)}
+                        </React.Fragment>
+                    )}
                 </div>
             </div>
         )
@@ -157,6 +163,8 @@ Messages.propTypes = {
         room: PropTypes.string,
         perPage: PropTypes.number,
         pendingMsgToken: PropTypes.string.isRequired,
+        closed: PropTypes.bool,
+        notifyFlag: PropTypes.bool,
     }),
 }
 

@@ -4,6 +4,7 @@ import {
     PROTO_HISTORY_GET_STARTED,
     PROTO_HISTORY_FAIL,
     PROTO_HISTORY_SUCCESS,
+    PROTO_MSG_CLEAR_NOTIFY,
 } from '../actions/messages'
 import { CONNECT_TO_WS_CLOSED } from '../actions/connectionActions'
 import { clearToken } from '../utils/utils'
@@ -15,6 +16,8 @@ const initialState = {
     room: null,
     perPage: null,
     pendingMsgToken: '',
+    closedscr: null,
+    notifyFlag: null,
 }
 
 export function messagesReducer(state = initialState, action) {
@@ -28,11 +31,13 @@ export function messagesReducer(state = initialState, action) {
                 room: null,
                 perPage: null,
                 nym: null,
+                closedscr: true,
             }
         case PROTO_AUTH_SUCCESS:
             return {
                 ...state,
                 nym: action.payload.nym,
+                closedscr: false,
             }
         case PROTO_SELROOM_SUCCESS:
             return {
@@ -46,6 +51,12 @@ export function messagesReducer(state = initialState, action) {
             return {
                 ...state,
                 messages: [...state.messages, action.payload],
+                notifyFlag: true,
+            }
+        case PROTO_MSG_CLEAR_NOTIFY:
+            return {
+                ...state,
+                notifyFlag: false,
             }
         case PROTO_HISTORY_GET_STARTED:
             return {

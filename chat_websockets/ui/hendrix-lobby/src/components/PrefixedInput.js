@@ -1,6 +1,6 @@
 import React from 'react'
 import './PrefixedInput.css'
-
+import { expwidth } from '../containers/messages'
 const menuSpecial = '/menu'
 const rentRoom = '/rent-lavatory-room'
 
@@ -54,25 +54,49 @@ class PrefixedInput extends React.Component {
     render() {
         const { disabled } = this.props
         return (
-            <div>
-                <button
-                    className="btn shifted-btn"
-                    onClick={this.btnClickHandler}
-                    disabled={disabled}
-                >
-                    {' '}
-                    say
-                </button>
-                <div className="pref-input-container">
-                    <input
-                        id="unique_say"
-                        className="prefixed-input"
-                        type="text"
-                        onKeyPress={this.keyPrsHandler}
-                        disabled={disabled}
-                        ref={this.input}
-                    />
-                    <span className="inside-prefixed-input">$</span>
+            <div
+                className="table"
+                style={{
+                    width: expwidth,
+                }}
+            >
+                <div className="group-header">
+                    <div
+                        className="pref-input-container cell"
+                        style={{
+                            width: expwidth - 110,
+                        }}
+                    >
+                        <input
+                            id="unique_say"
+                            className="prefixed-input"
+                            type="text"
+                            style={{
+                                width: expwidth - 150,
+                            }}
+                            onKeyPress={this.keyPrsHandler}
+                            disabled={disabled}
+                            ref={this.input}
+                        />
+                        <span
+                            className="inside-prefixed-input"
+                            style={{
+                                marginLeft: -1 * (expwidth - 130),
+                            }}
+                        >
+                            $
+                        </span>
+                    </div>
+                    <div className="cell">
+                        <button
+                            className="shadowbtn big-btn"
+                            onClick={this.btnClickHandler}
+                            disabled={disabled}
+                        >
+                            {' '}
+                            say
+                        </button>
+                    </div>
                 </div>
             </div>
         )

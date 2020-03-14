@@ -10,8 +10,8 @@ export function connectToWs() {
         dispatch({
             type: CONNECT_TO_WS_REQUEST,
         })
-        //conn = new WebSocket(`ws://${window.location.host}/ws`)
-        conn = new WebSocket(`ws://${window.location.hostname}:8080/ws`)
+        conn = new WebSocket(`ws://${window.location.host}/ws`)
+        //conn = new WebSocket(`ws://${window.location.hostname}:8080/ws`)
         conn.onopen = function(ev) {
             dispatch({
                 type: CONNECT_TO_WS_ESTABLISHED,

@@ -8,6 +8,7 @@ export const PROTO_SELROOM_SUCCESS = 'PROTO_SELROOM_SUCCESS'
 export const PROTO_SELROOM_FAIL = 'PROTO_SELROOM_FAIL'
 export const PROTO_SEND_MSG = 'PROTO_SEND_MSG'
 export const PROTO_UNKNOWN = 'PROTO_UNKNOWN'
+export const PROTO_GENERIC = 'PROTO_GENERIC'
 export const PROTO_STUB_ACTION = 'PROTO_STUB_ACTION'
 
 const defaultRoom = 'Lobby'
@@ -84,6 +85,10 @@ export function message_received(dispatch, connection) {
             })
             return
         }
+        dispatch({
+            type: PROTO_GENERIC,
+            payload: protoMsg,
+        })
         switch (protoMsg.msg.action) {
             case 'authenticate':
                 console.log('authenticate msg received')

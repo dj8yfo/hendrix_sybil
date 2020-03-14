@@ -1,10 +1,12 @@
 import { v4 as uuidv4 } from 'uuid'
 export const PROTO_MSG_RCVD = 'PROTO_MSG_RCVD'
+export const PROTO_MSG_CLEAR_NOTIFY = 'PROTO_MSG_CLEAR_NOTIFY'
 export const PROTO_MSG_FAIL = 'PROTO_MSG_FAIL'
 export const PROTO_HISTORY_GET_STARTED = 'PROTO_HISTORY_GET_STARTED'
 export const PROTO_HISTORY_SUCCESS = 'PROTO_HISTORY_SUCCESS'
 export const PROTO_HISTORY_FAIL = 'PROTO_HISTORY_FAIL'
 
+const flashTimeout = 3000
 export function handleRegularMessageRcvd(protoMsg, dispatch) {
     switch (protoMsg.status) {
         case 'success':
@@ -17,6 +19,11 @@ export function handleRegularMessageRcvd(protoMsg, dispatch) {
                     token: protoMsg.msg.token,
                 },
             })
+            setTimeout(() => {
+                dispatch({
+                    type: PROTO_MSG_CLEAR_NOTIFY,
+                })
+            }, flashTimeout)
             break
         case 'error':
             dispatch({
