@@ -1,0 +1,12 @@
+/etc/nginx/sites-available
+
+/etc/nginx/sites-available/app_gateway : 
+./app_gateway
+
+sudo cp ./app_gateway //etc/nginx/sites-available/app_gateway
+sudo ln -s /etc/nginx/sites-available/app_gateway /etc/nginx/sites-enabled/app_gateway
+
+# sudo service nginx stop
+# install nginx --with-debug
+sudo rm /etc/nginx/sites-enabled/default
+sudo service nginx restart
