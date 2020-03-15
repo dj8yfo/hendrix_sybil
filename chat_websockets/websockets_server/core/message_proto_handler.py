@@ -27,7 +27,7 @@ class MessageProtoHandler(AioredisWorker):
     ERROR = 'error'
     MAX_MESSAGES = 123
     MAX_RETRIES = 13
-    PAGE = 10
+    PAGE = 5
 
     message_sequence_pattern = re.compile(r'''
         ^

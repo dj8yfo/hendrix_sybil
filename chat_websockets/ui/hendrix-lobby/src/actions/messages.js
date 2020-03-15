@@ -5,8 +5,9 @@ export const PROTO_MSG_FAIL = 'PROTO_MSG_FAIL'
 export const PROTO_HISTORY_GET_STARTED = 'PROTO_HISTORY_GET_STARTED'
 export const PROTO_HISTORY_SUCCESS = 'PROTO_HISTORY_SUCCESS'
 export const PROTO_HISTORY_FAIL = 'PROTO_HISTORY_FAIL'
+export const CHANGED_NEW_MESSAGES_INDICATOR = 'CHANGED_NEW_MESSAGES_INDICATOR'
 
-const flashTimeout = 3000
+const flashTimeout = 1000
 export function handleRegularMessageRcvd(protoMsg, dispatch) {
     switch (protoMsg.status) {
         case 'success':
@@ -17,6 +18,7 @@ export function handleRegularMessageRcvd(protoMsg, dispatch) {
                     date_created: protoMsg.msg.date_created,
                     from_nym: protoMsg.msg.from_nym,
                     token: protoMsg.msg.token,
+                    viewed: false,
                 },
             })
             setTimeout(() => {
@@ -45,6 +47,7 @@ export function handleHistoryRcvd(protoMsg, dispatch) {
                     content: value.content,
                     date_created: value.date_created,
                     from_nym: value.from_nym,
+                    viewed: true,
                 }
             })
             dispatch({
@@ -79,5 +82,12 @@ export const historyRetrieve = (lastMessage, room, connection) => {
     return {
         type: PROTO_HISTORY_GET_STARTED,
         payload: msgToken,
+    }
+}
+
+export const indicateNewMessages = messages => {
+    return {
+        type: CHANGED_NEW_MESSAGES_INDICATOR,
+        payload: messages,
     }
 }

@@ -1,5 +1,6 @@
 .msgs {
         margin-top: 10px;
+        position:relative;
 }
 
 .entry-msg {
@@ -9,16 +10,13 @@
 }
 
 
-.viewport::-webkit-scrollbar {
-    -webkit-appearance: none;
-}
-
-.viewport::-webkit-scrollbar:vertical {
-    width: 11px;
-}
-
-.viewport::-webkit-scrollbar-thumb {
-    border-radius: 8px;
-    border: 2px solid white; /* should match background, can't be transparent */
-    background-color: #444444;
+.arrow {
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        z-index: 10;
+        background: '#000000';
+        background-size: '100px 200px';
+        width: 35px;
+        height: 75px;
 }

@@ -78,7 +78,6 @@ export function message_received(dispatch, connection) {
         try {
             protoMsg = JSON.parse(ev.data)
         } catch (err) {
-            console.log(`${err} - json.parse?`)
             dispatch({
                 type: PROTO_UNKNOWN,
                 payload: ev.data,
@@ -91,11 +90,9 @@ export function message_received(dispatch, connection) {
         })
         switch (protoMsg.msg.action) {
             case 'authenticate':
-                console.log('authenticate msg received')
                 handleAuthenticate(protoMsg, dispatch, connection)
                 break
             case 'select_room':
-                console.log('select_room msg received')
                 handleSelectRoom(protoMsg, dispatch)
                 break
             case 'send_message':

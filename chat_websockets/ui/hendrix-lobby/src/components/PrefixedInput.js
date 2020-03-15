@@ -27,7 +27,6 @@ class PrefixedInput extends React.Component {
                 substr[1].length > 0
             ) {
                 let nextRoom = substr[1]
-                console.log(nextRoom)
                 this.props.changeRoom(nextRoom)
             } else {
                 return
@@ -39,7 +38,6 @@ class PrefixedInput extends React.Component {
 
     keyPrsHandler = ev => {
         if (ev.keyCode === 13 || ev.which === 13) {
-            console.log(ev)
             this.commonHandler()
             return false
         } else {
@@ -81,7 +79,7 @@ class PrefixedInput extends React.Component {
                         <span
                             className="inside-prefixed-input"
                             style={{
-                                marginLeft: -1 * (expwidth - 130),
+                                marginLeft: -1 * (expwidth - 135),
                             }}
                         >
                             $

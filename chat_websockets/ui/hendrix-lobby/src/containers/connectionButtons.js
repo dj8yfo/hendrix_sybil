@@ -11,7 +11,6 @@ import './connectionButtons.css'
 
 class ConnectionButtons extends React.Component {
     render() {
-        console.log('<ConnectionStatus/ >')
         const { connection, initConnect, initAuthenticate } = this.props
         return (
             <div

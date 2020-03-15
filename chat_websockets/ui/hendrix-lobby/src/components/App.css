@@ -43,14 +43,14 @@ div.centered {
 
 
 .App-header {
-  text-transform: uppercase;
+  /*text-transform: uppercase;*/
   height: auto;
+  font-size: 30px;
   /*display: flex;*/
   align-items: center;
   text-align: center;
   justify-content: center;
-  font-size: calc(10px + 4vmin);
-  font-weight: bold;
+  font-weight: normal;
   color: white;
 }
 
