@@ -22,7 +22,7 @@ class App extends React.Component {
                                 <ConnectionStatus />
                             </div>
                             <div className="cell">
-                                <div className="App-header">hendrix</div>
+                                <div className="App-header">Hendrix</div>
                             </div>
                             <ConnectionButtons />
                         </div>

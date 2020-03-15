@@ -72,7 +72,7 @@ class MessageEntry extends React.Component {
             'block-msg'
         )
         return (
-            <div className="entry-msg">
+            <div className="entry-msg" ref={this.props.inputRef}>
                 <div className={blurredClass}>
                     <div className={imageClass}>
                         {isHendrix ? (

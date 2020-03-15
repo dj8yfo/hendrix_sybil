@@ -14,7 +14,6 @@ class ConnectionStatus extends React.Component {
         return proto.pendingMsgToken || proto.unhandledWsMessage
     }
     render() {
-        console.log('<ConnectionStatus/ >')
         const { connection, messages, statusLast } = this.props
         let prevMessage = prevMessages(messages.lastMessage)
         let fsize = isMobileLayout() ? '80%' : '100%'

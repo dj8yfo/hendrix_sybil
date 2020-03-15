@@ -5,6 +5,7 @@ import {
     PROTO_HISTORY_FAIL,
     PROTO_HISTORY_SUCCESS,
     PROTO_MSG_CLEAR_NOTIFY,
+    CHANGED_NEW_MESSAGES_INDICATOR,
 } from '../actions/messages'
 import { CONNECT_TO_WS_CLOSED } from '../actions/connectionActions'
 import { clearToken } from '../utils/utils'
@@ -81,6 +82,11 @@ export function messagesReducer(state = initialState, action) {
                     ...state,
                     pendingMsgToken: clearToken(state, action.payload.token),
                 }
+            }
+        case CHANGED_NEW_MESSAGES_INDICATOR:
+            return {
+                ...state,
+                messages: action.payload,
             }
         default:
             return state

@@ -33,7 +33,6 @@ export function connectToWs() {
         }
 
         conn.onmessage = message_received(dispatch, conn)
-        console.log(conn)
     }
 }
 

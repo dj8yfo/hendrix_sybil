@@ -9,7 +9,6 @@ import './ChatProto.css'
 
 class ChatProto extends React.Component {
     render() {
-        console.log('<ChatProto/ >')
         const { proto, sendMessage, sendQueryMenu, initSelectroom } = this.props
         let sendDisabled =
             Boolean(proto.pendingMsgToken) || !Boolean(proto.room)
