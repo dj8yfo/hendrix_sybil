@@ -7,14 +7,35 @@ upstream app_gateway {
 }
 # HTTP server
 #
-error_log /home/hypen9/Documents/code/nginx_debug.log debug;
+#error_log /home/upbser/Documents/code/nginx_debug.log debug;
 server {
-        listen 80 default_server;
+        #listen 80 default_server;
+        listen 443 ssl;
         #server_name  myservice.example.org;
+        ssl on;
+        ssl_certificate /etc/nginx/ssl/nginx.crt;
+        ssl_certificate_key /etc/nginx/ssl/nginx.key;
+
+        ssl_session_cache   shared:SSL:10m;
+        ssl_session_timeout 10m;
+        ssl_protocols TLSv1.2;
 
         client_max_body_size 20m;
         location / {
                 proxy_pass              http://app_gateway;
+                proxy_set_header        Host $host;
+                proxy_set_header        X-Real-IP $remote_addr;
+                proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header        X-Forwarded-Proto $scheme;
+                proxy_pass_header       Accept;
+                proxy_pass_header       Server;
+                proxy_http_version      1.1;
+                keepalive_requests      1000;
+                keepalive_timeout       360s;
+                proxy_read_timeout      360s;
+        }
+        location /ws {
+                proxy_pass              http://app_gateway/ws;
                 proxy_set_header        Host $host;
                 proxy_set_header        X-Real-IP $remote_addr;
                 proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
