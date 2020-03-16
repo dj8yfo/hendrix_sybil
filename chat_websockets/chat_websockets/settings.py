@@ -80,7 +80,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'chatw',
         'USER': 'chatw',
-        'PASSWORD': 'chatw'
+        'PASSWORD': 'chatw',
+        'HOST': 'database',
     }
 }
 
