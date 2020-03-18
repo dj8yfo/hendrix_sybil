@@ -5,7 +5,7 @@ sys.path.append(os.getcwd())
 import telebot
 import tlgrm_secrets
 
-from websockets_server.core.settings import HENDRIX_CHANNEL
+from websockets_server.core.settings import HENDRIX_CHANNEL, REDIS_HOST, REDIS_PORT
 from websockets_server.core.message_proto_handler import MessageProtoHandler
 from utils.log_helper import setup_logger
 
@@ -13,7 +13,7 @@ import redis
 import json
 
 bot = telebot.AsyncTeleBot(tlgrm_secrets.token2)
-r = redis.Redis(host='localhost', port=6379, db=0)
+r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
 logger = setup_logger(__name__, filename_arg='tlgrm_listen_hendrix')
 
 command = 'send'
