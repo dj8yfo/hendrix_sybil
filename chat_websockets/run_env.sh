@@ -11,4 +11,6 @@ python manage.py msg_process_worker --sub_topic=worker-input-3 --worker_class=we
 python manage.py msg_process_worker --sub_topic=workers-responded --worker_class=websockets_server.tlgrm.tlgrm_notifier:HendrixTelegramNotify &
 python manage.py msg_process_worker --sub_topic=hendrix --worker_class=websockets_server.tlgrm.tlgrm_notifier:HendrixTelegramNotify &
 ./bot_supervisor.sh &
-gunicorn websockets_server.core.app:app --bind localhost:8080 --workers 1 --worker-class aiohttp.worker.GunicornWebWorker
+
+#gunicorn websockets_server.core.app:app --access-logfile /home/app/web/access.log --bind 0.0.0.0:8080 --workers 1 --worker-class aiohttp.worker.GunicornWebWorker
+gunicorn websockets_server.core.app:app --bind 0.0.0.0:8080 --workers 1 --worker-class aiohttp.worker.GunicornWebWorker

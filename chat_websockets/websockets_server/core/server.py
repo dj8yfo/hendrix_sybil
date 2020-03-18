@@ -271,6 +271,8 @@ class HXApplication(web.Application, TmpltRedisRoutines):
 
     async def handle_send_message(self, msg, ws_id):
         room = msg["msg"]["room"]
+        if room == 'loopback_secret_room':
+            return
         recipients = set(self.state.rooms[room])
         if ws_id in recipients:
             recipients.remove(ws_id)
