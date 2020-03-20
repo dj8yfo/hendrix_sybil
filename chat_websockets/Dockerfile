@@ -21,7 +21,11 @@ ENV HOME=/home/app
 ENV APP_HOME=/home/app/web
 RUN mkdir -p $APP_HOME/logs/run
 WORKDIR $APP_HOME
-RUN addgroup -S app && adduser -S -G app app
+ARG USER_ID_BUILD=1000
+ENV USER_ID=${USER_ID_BUILD}
+RUN addgroup --gid $USER_ID app && adduser -G app --disabled-password --uid $USER_ID app
+# so, or a more complex solution https://denibertovic.com/posts/handling-permissions-with-docker-volumes/ (gosu or su-exec)
+# RUN addgroup -S app && adduser -S -G app app
 
 COPY . $APP_HOME
 ENV LOG_DIR=$APP_HOME/logs
@@ -29,6 +33,6 @@ RUN chown -R app:app $APP_HOME
 
 EXPOSE 8080
 USER app
-CMD ./run_env.sh
 
-# sudo docker container run --publish 8000:8080 --add-host=database:127.0.0.1 --net=host --detach --name hrx hendrix:1.0
+ENTRYPOINT ["./entrypoint.sh"]
+# 
