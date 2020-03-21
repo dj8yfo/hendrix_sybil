@@ -204,7 +204,7 @@ class HXApplication(web.Application, TmpltRedisRoutines):
         self.logger.info("available nyms: %s", nyms)
         self.router.add_get("/ws", views.WebSocketView)
         self.router.add_static("/", "./ui/hendrix-lobby/build/")
-        redis_addr = (settings.REDIS_HOST, settings.REDIS_PORT)
+        redis_addr = settings.REDIS_URL
         channels_handlers = [(settings.ROUNDTRIP_CHANNEL, self.process_msg_inbound)]
         channels_handlers += [(settings.HENDRIX_CHANNEL, self.process_msg_admin)]
         await self.init_redis_tasks(redis_addr, channels_handlers)

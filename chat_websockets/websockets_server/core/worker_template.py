@@ -7,11 +7,10 @@ import signal
 
 class AioredisWorker(TmpltRedisRoutines):
 
-    def __init__(self, host=None, port=None, sub_topic=None, loop=None, **kwargs):
+    def __init__(self, address=None, sub_topic=None, loop=None, **kwargs):
         self.logger = setup_logger(__name__)
         self.loop = loop or asyncio.get_event_loop()
-        self.host = host
-        self.port = port
+        self.address = address
         self.sub_topic = sub_topic
         self.tasks = []
         for signum in [signal.SIGTERM, signal.SIGINT]:
@@ -31,9 +30,8 @@ class AioredisWorker(TmpltRedisRoutines):
         self.logger.debug('[%s]: [%s]', chann_name, msg_raw)
 
     async def _run(self):
-        redis_addr = (self.host, self.port)
         channels_handlers = [(self.sub_topic, self.process_msg_inbound)]
-        await self.init_redis_tasks(redis_addr, channels_handlers)
+        await self.init_redis_tasks(self.address, channels_handlers)
 
     def run(self):
         # print(f"I'm {os.getpid()}, hello!")

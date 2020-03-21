@@ -1,9 +1,5 @@
 import os
-if os.environ.get("IS_TEST") is None:
-    REDIS_HOST = 'redis'
-else:
-    REDIS_HOST = 'localhost'
-REDIS_PORT = 6379
+REDIS_URL = os.environ.get("REDIS_URL")
 ROUNDTRIP_CHANNEL = 'workers-responded'
 WORKER_TOPIC = ['worker-input', 'worker-input-1']
 HENDRIX_CHANNEL = 'hendrix'
