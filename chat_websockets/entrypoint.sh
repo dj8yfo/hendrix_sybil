@@ -1,9 +1,7 @@
 #!/bin/bash
 echo "Waiting for postgres..."
 
-while ! nc -z $SQL_HOST $SQL_PORT; do
-sleep 0.1
-done
+sleep 1.0
 echo "PostgreSQL started"
 
 echo "Waiting for redis..."

@@ -18,6 +18,7 @@ redis = "==3.4.1"
 psycopg2 = "==2.8.4"
 djangorestframework = "==3.11.0"
 ipython = "*"
+dj-database-url = "==0.5.0"
 
 [requires]
 python_version = "3.8"

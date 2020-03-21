@@ -3,6 +3,8 @@
 . "$(pipenv --venv)/"bin/activate
 
 export LOG_DIR=$HOME/hendrix_logs
+export IS_TEST=flag
+export DATABASE_URL=postgres://chatw:chatw@localhost:5432/chatw
 case "$1" in
 	integration)
 		trap 'sleep 5; kill $(jobs -p)' EXIT INT TERM
