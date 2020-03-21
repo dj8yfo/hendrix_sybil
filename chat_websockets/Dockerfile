@@ -31,8 +31,8 @@ COPY . $APP_HOME
 ENV LOG_DIR=$APP_HOME/logs
 RUN chown -R app:app $APP_HOME
 
-EXPOSE 8080
+# EXPOSE 8080
 USER app
 
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["./run_env.sh"]
 # 
