@@ -3,7 +3,6 @@ version: '3.7'
 services:
   web:
     build: ./chat_websockets/
-    #command: sleep 1000
     command: ./run_env.sh
     volumes:
     - type: bind
@@ -11,8 +10,6 @@ services:
       target: /home/app/web/logs/run/
     ports:
       - 8000:8080
-    #extra_hosts:
-    #  - "database:172.17.0.1"
     env_file:
       - ./.env.dev
     depends_on:
@@ -35,5 +32,3 @@ services:
 volumes:
   postgres_data:
   redis_data:
-# docker-compose exec web python manage.py migrate --noinput
-# docker-compose exec db psql --username=chatw --dbname=chatw
