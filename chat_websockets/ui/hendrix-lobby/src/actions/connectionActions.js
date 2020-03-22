@@ -10,7 +10,7 @@ export function connectToWs() {
         dispatch({
             type: CONNECT_TO_WS_REQUEST,
         })
-        conn = new WebSocket(`ws://${window.location.host}/ws`)
+        conn = new WebSocket(`wss://${window.location.host}/ws`)
         //conn = new WebSocket(`wss://${window.location.hostname}:443/ws`)
         conn.onopen = function(ev) {
             dispatch({
