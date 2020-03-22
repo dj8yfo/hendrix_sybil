@@ -7,7 +7,7 @@ sleep 2
 
 echo "DATABASE_URL: ": $DATABASE_URL
 echo "REDIS_URL: ": $REDIS_URL
-python manage.py flush --no-input
+# python manage.py flush --no-input
 python manage.py migrate
 
 python manage.py msg_process_worker --sub_topic=worker-input --worker_class=websockets_server.core.chat_msg_worker:DbAccessWorker &

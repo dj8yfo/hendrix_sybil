@@ -156,11 +156,28 @@ class HXApplicationState(object):
     async def broadcast_message(self, msg, *recepients):
         json_msg = json.dumps(msg)
         self.logger.debug("broadcast list: [%s]", recepients)
-        coros = map(
-            lambda recepient: self.send_message(recepient, json_msg, convert=False),
-            recepients,
+
+        def condition_dropped(recepient):
+            return (
+                self.conn[recepient]._req.transport is None
+                or self.conn[recepient]._req.transport.is_closing()  # noqa:W503
+            )
+
+        dropped = filter(condition_dropped, recepients)
+        not_dropped = filter(
+            lambda recepient: not condition_dropped(recepient), recepients
         )
-        await asyncio.gather(*coros, return_exceptions=True)
+        coros_send = map(
+            lambda recepient: self.send_message(recepient, json_msg, convert=False),
+            not_dropped,
+        )
+        await asyncio.gather(*coros_send, return_exceptions=True)
+
+        coros_drop = map(
+            lambda recepient: self.close_connection(recepient),
+            dropped,
+        )
+        await asyncio.gather(*coros_drop, return_exceptions=True)
 
 
 class HXApplication(web.Application, TmpltRedisRoutines):
@@ -243,7 +260,7 @@ class HXApplication(web.Application, TmpltRedisRoutines):
                 meth = getattr(self, handler)
                 await meth(msg, ws_id)
 
-            if msg['msg']['room'] != 'loopback_secret_room':
+            if msg["msg"]["room"] != "loopback_secret_room":
                 await self.state.send_message(ws_id, msg)
             if self.state.closed[ws_id]:
                 await self.state.close_connection(
@@ -271,7 +288,7 @@ class HXApplication(web.Application, TmpltRedisRoutines):
 
     async def handle_send_message(self, msg, ws_id):
         room = msg["msg"]["room"]
-        if room == 'loopback_secret_room':
+        if room == "loopback_secret_room":
             return
         recipients = set(self.state.rooms[room])
         if ws_id in recipients:
@@ -286,13 +303,16 @@ class HXApplication(web.Application, TmpltRedisRoutines):
         msg = json.loads(raw_msg)
         ws_id = msg.pop("ws_id")
         message_content = msg["msg"]["content"]
-        if message_content.startswith('PPP:'):
+        if message_content.startswith("PPP:"):
             message_content = message_content[4:]
         if ws_id in self.state:
             found_room = self.state.websockets[ws_id]["room"]
             payload, _ = MessageProtoHandler.send_message_layout(
-                message_content, found_room, "hendrix", ws_id=None,
-                token=msg['msg']['token']
+                message_content,
+                found_room,
+                "hendrix",
+                ws_id=None,
+                token=msg["msg"]["token"],
             )
             await self.state.send_message(ws_id, payload)
         else:

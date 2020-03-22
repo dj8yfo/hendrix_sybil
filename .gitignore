@@ -8,3 +8,7 @@ tmux_hendrix.conf
 coverage_html_report
 tlgrm_secrets.py
 node_modules
+Session.vim
+cscope.files
+cscope.out
+
