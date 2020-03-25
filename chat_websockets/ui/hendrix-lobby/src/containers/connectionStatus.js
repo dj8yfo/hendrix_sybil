@@ -29,10 +29,12 @@ class ConnectionStatus extends React.Component {
                     data-tooltip-location="right"
                 >
                     status:{' '}
-                    {connection.connected
+                    {connection.authenticating
+                        ? 'uploading...'
+                        : connection.connected
                         ? 'connected'
                         : connection.connecting
-                        ? 'connecting'
+                        ? 'connecting...'
                         : 'disconnected'}
                 </p>
                 <div>
