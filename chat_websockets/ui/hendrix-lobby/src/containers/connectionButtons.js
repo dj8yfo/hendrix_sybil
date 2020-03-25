@@ -30,6 +30,7 @@ class ConnectionButtons extends React.Component {
                     className="darkbtn btn"
                     disabled={
                         connection.authenticated ||
+                        connection.authenticating ||
                         !connection.connected ||
                         connection.connecting
                     }
